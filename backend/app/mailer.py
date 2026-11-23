@@ -57,6 +57,16 @@ def mask_email(email: str) -> str:
     return (name[:2] + "***" if len(name) > 2 else name[:1] + "***") + "@" + domain
 
 
+DEMO_DOMAINS = ("example.edu.vn", "example.com", "example.org", "example.net")
+DEMO_TLDS = (".invalid", ".test", ".example", ".localhost")
+
+
+def is_demo_address(email: str) -> bool:
+    """Email của dữ liệu demo (seed_demo_v2.py dùng @example.edu.vn) hoặc tên miền dành riêng cho thử nghiệm."""
+    domain = email.rsplit("@", 1)[-1].strip().lower()
+    return domain in DEMO_DOMAINS or domain.endswith(DEMO_TLDS)
+
+
 def _sender() -> str:
     return settings.mail_from or settings.smtp_user or "eduagent@localhost"
 
@@ -116,7 +126,16 @@ def deliver(db: Session, mails: list[Mail]) -> list[Mail]:
     for mail in mails:
         to = settings.mail_redirect_to or mail.to
         messages.append((mail, _build(mail, to)))
-    (_send_smtp if mode() == "smtp" else _save_outbox)(messages)
+    if mode() == "smtp":
+        # Địa chỉ của dữ liệu demo / kiểm thử không có hộp thư thật: lưu outbox, không gửi (tránh thư báo lỗi)
+        real = [(m, msg) for m, msg in messages if not is_demo_address(msg["To"])]
+        demo = [(m, msg) for m, msg in messages if is_demo_address(msg["To"])]
+        if real:
+            _send_smtp(real)
+        if demo:
+            _save_outbox(demo)
+    else:
+        _save_outbox(messages)
     for mail, msg in messages:
         db.add(EmailLog(user_id=mail.user_id, to_email=msg["To"], kind=mail.kind, audience=mail.audience,
                         run_id=mail.run_id, n_alerts=mail.n_alerts, subject=str(msg["Subject"])[:255],

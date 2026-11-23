@@ -91,8 +91,8 @@ def request_code(data: EmailIn, user: User = Depends(get_current_user), db: Sess
         raise HTTPException(502, f"Không gửi được email. {mail.result.get('error', '')}")
     db.commit()
     out = {"sent_to": mailer.mask_email(email), "expires_minutes": CODE_MINUTES, "mode": mailer.mode()}
-    # Chế độ thử (chưa cấu hình SMTP): không có thư thật nào được gửi đi, hiện mã ngay để dùng thử được
-    if mailer.mode() == "outbox" and not settings.mail_redirect_to:
+    # Thư không được gửi thật (chưa cấu hình SMTP, hoặc địa chỉ demo @example.edu.vn): hiện mã ngay để dùng thử được
+    if mail.result["status"] == "outbox" and not settings.mail_redirect_to:
         out["dev_code"] = code
     return out
 

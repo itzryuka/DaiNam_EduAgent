@@ -11,7 +11,7 @@ import html
 import logging
 from collections import defaultdict
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 
 from . import mailer
 from .config import settings
@@ -56,14 +56,21 @@ def compose(user: User, audience: str, alerts: list[Alert], students: dict[int, 
             advisor_notified: bool) -> mailer.Mail:
     link = f"{settings.app_base_url}/alerts.html"
     greeting = f"Chào {user.full_name},"
+    academic = [a for a in alerts if a.enrollment_id is None]  # cảnh báo học tập (học vụ), không theo môn
+    courses = [a for a in alerts if a.enrollment_id is not None]
     if audience == "student":
-        intro = (f"Hệ thống cảnh báo sớm nhận thấy bạn cần chú ý ở {len(alerts)} môn học kỳ này. "
+        found = ([f"thuộc diện {academic[0].title[0].lower()}{academic[0].title[1:]}"] if academic else []) \
+            + ([f"cần chú ý ở {len(courses)} môn học kỳ này"] if courses else [])
+        intro = (f"Hệ thống cảnh báo sớm nhận thấy bạn {' và '.join(found)}. "
                  "Hãy xem lời nhắc dưới đây và chủ động trao đổi với giảng viên hoặc cố vấn học tập.")
         if advisor_notified:
             intro += " Cố vấn học tập (giáo viên chủ nhiệm) của bạn cũng đã nhận được thông báo này."
-        groups = [(a.title.replace("Lời nhắc học tập: ", "Môn "), [a.message.split(": ", 1)[-1].capitalize()
-                   if a.message.startswith("Môn ") else a.message]) for a in alerts]
-        subject = f"[EduAgent] Lời nhắc học tập: {len(alerts)} môn cần chú ý"
+        groups = [(a.title, [a.message]) for a in academic]
+        groups += [(a.title.replace("Lời nhắc học tập: ", "Môn "), [a.message.split(": ", 1)[-1].capitalize()
+                    if a.message.startswith("Môn ") else a.message]) for a in courses]
+        subject = " và ".join((["Cảnh báo học tập"] if academic else [])
+                              + ([f"{len(courses)} môn cần chú ý"] if courses else []))
+        subject = f"[EduAgent] {subject}" if academic else f"[EduAgent] Lời nhắc học tập: {subject}"
     else:
         by_student: dict[int, list[Alert]] = defaultdict(list)
         for a in alerts:
@@ -75,8 +82,10 @@ def compose(user: User, audience: str, alerts: list[Alert], students: dict[int, 
             lines = [f"{a.title.split(' · ', 1)[-1]}. {a.message}" for a in items]
             groups.append((head, lines))
         role = "lớp chủ nhiệm" if audience == "advisor" else "lớp học phần bạn dạy"
+        found = ([f"{len(courses)} lượt môn học"] if courses else []) \
+            + ([f"{len({a.student_id for a in academic})} sinh viên thuộc diện cảnh báo học tập"] if academic else [])
         intro = (f"AI Agent vừa phát hiện {len(by_student)} sinh viên thuộc {role} cần chú ý "
-                 f"({len(alerts)} lượt môn học). Sinh viên cũng đã nhận lời nhắc (không kèm xác suất).")
+                 f"({', '.join(found)}). Sinh viên cũng đã nhận lời nhắc (không kèm xác suất).")
         subject = f"[EduAgent] Cảnh báo sớm: {len(by_student)} sinh viên {role} cần chú ý"
         link = f"{settings.app_base_url}/{'advising' if audience == 'advisor' else 'teaching'}.html"
     return mailer.Mail(to=user.email, subject=subject, text=_text(greeting, intro, groups, link),
@@ -89,10 +98,14 @@ def email_run(run_id: int) -> dict:
     with SessionV2() as db:
         run = db.get(AgentRun, run_id)
         wanted = audiences(db)
+        # Cảnh báo theo môn gắn với dự báo của lần chạy; cảnh báo học tập (không gắn dự báo) mang giờ của lần chạy
+        this_run = Prediction.run_id == run_id
+        if run is not None:
+            this_run = or_(this_run, and_(Alert.prediction_id.is_(None), Alert.created_at == run.started_at))
         rows = db.execute(
-            select(Alert, User).join(Prediction, Prediction.id == Alert.prediction_id)
+            select(Alert, User).outerjoin(Prediction, Prediction.id == Alert.prediction_id)
             .join(User, User.id == Alert.recipient_user_id)
-            .where(Prediction.run_id == run_id, Alert.audience.in_(wanted))
+            .where(this_run, Alert.audience.in_(wanted))
             .order_by(Alert.recipient_user_id, Alert.id)
         ).all()
         groups: dict[tuple[int, str], list[Alert]] = defaultdict(list)

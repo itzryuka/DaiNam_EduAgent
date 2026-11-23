@@ -25,7 +25,7 @@ from sqlalchemy.orm import Session
 
 from .config import REPO_ROOT, settings
 from .database_v2 import engine_v2
-from .models_v2 import AgentRun, Alert, Prediction, Semester
+from .models_v2 import AgentRun, Alert, Class, Prediction, Semester, Student
 from .services_v2 import current_semester
 
 sys.path.insert(0, str(REPO_ROOT / "ml"))
@@ -257,6 +257,12 @@ def _run(db: Session, run: AgentRun, semester: Semester, as_of: datetime, stamp:
                                 audience=audience, channel="in_app", level=level, title=title[:200],
                                 message=message, status="sent", created_at=stamp, sent_at=stamp))
             audience_counts[audience] += 1
+    course_alerts = len(alerts)
+    # ④b Cảnh báo học tập (học vụ). Chạy lại quá khứ thì bỏ qua: tổng kết học kỳ tính theo dữ liệu hiện tại
+    academic = _academic_alerts(db, people, stamp) if run.trigger_type != "replay" else []
+    for a in academic:
+        audience_counts[a.audience] += 1
+    alerts += academic
     db.add_all(alerts)
 
     flagged = df[df["source"] != "none"]
@@ -270,7 +276,8 @@ def _run(db: Session, run: AgentRun, semester: Semester, as_of: datetime, stamp:
                      "rule": int((df["source"] == "rule").sum()), "ai": int((df["source"] == "ai").sum()),
                      "students": int(flagged["student_id"].nunique())},
         "report": {"alerts": len(alerts), **audience_counts,
-                   "enrollments": len({a.enrollment_id for a in alerts})},
+                   "enrollments": len({a.enrollment_id for a in alerts[:course_alerts]}),
+                   "academic_students": len({a.student_id for a in academic})},
         "follow": follow,
     }
 
@@ -291,6 +298,48 @@ def _people(db: Session, semester_id: int) -> dict[int, dict]:
         LEFT JOIN users au ON au.id = al.user_id
         WHERE cs.semester_id = :sid""")
     return {row.enrollment_id: dict(row._mapping) for row in db.execute(sql, {"sid": semester_id})}
+
+
+def _gpa(value: float | None) -> str:
+    return "chưa có" if value is None else f"{value:.2f}"
+
+
+def _academic_alerts(db: Session, people: dict[int, dict], stamp: datetime) -> list[Alert]:
+    """Sinh viên mới thuộc diện cảnh báo học tập (ĐTB học kỳ, ĐTB tích lũy thấp, nợ quá số tín chỉ) ở học kỳ có điểm
+    tổng kết gần nhất: báo cho sinh viên và CVHT, mỗi học kỳ một lần. Cùng cách tính với trang Kết quả học tập."""
+    from .routers.dashboard import _history  # import trong hàm để tránh vòng import (dashboard dùng agent)
+
+    students: dict[int, dict] = {}
+    for info in people.values():
+        students.setdefault(info["student_id"], info)
+    if not students:
+        return []
+    cohorts = dict(db.execute(select(Student.id, Class.cohort).join(Class, Class.id == Student.class_id)
+                              .where(Student.id.in_(students))).all())
+    _, latest = _history(db, {sid: {"cohort": cohorts[sid]} for sid in students})
+    # Đã báo rồi (cùng sinh viên, người nhận, học kỳ) thì thôi: tiêu đề có tên học kỳ nên dùng làm khóa
+    sent = set(db.execute(select(Alert.student_id, Alert.audience, Alert.title)
+                          .where(Alert.enrollment_id.is_(None), Alert.prediction_id.is_(None))).all())
+    out = []
+    for sid, s in latest.items():
+        if not s["warning"]["is_warned"]:
+            continue
+        info, semester, reasons = students[sid], s["semester"], "; ".join(s["warning"]["reasons"])
+        staff_msg = (f"Lý do: {reasons}. ĐTB học kỳ {_gpa(s['gpa4'])}, "
+                     f"ĐTB tích lũy {_gpa(s['cum_gpa4'])} (hệ 4), đang nợ {s['owed_credits']} tín chỉ. "
+                     "Nên gặp sinh viên để lập kế hoạch học tập cho các học kỳ tới.")
+        student_msg = (f"Bạn thuộc diện cảnh báo học tập {semester} ({reasons}). Hãy gặp cố vấn học tập (giáo viên "
+                       "chủ nhiệm) để lập kế hoạch cải thiện kết quả và đăng ký học lại các môn chưa đạt.")
+        for audience, user_id, title, message in (
+                ("advisor", info["advisor_user"], f"{info['student_code']} {info['full_name']} · "
+                                                  f"Cảnh báo học tập {semester}", staff_msg),
+                ("student", info["student_user"], f"Cảnh báo học tập {semester}", student_msg)):
+            if user_id is None or (sid, audience, title[:200]) in sent:
+                continue
+            out.append(Alert(prediction_id=None, student_id=sid, enrollment_id=None, recipient_user_id=user_id,
+                             audience=audience, channel="in_app", level="danger", title=title[:200],
+                             message=message, status="sent", created_at=stamp, sent_at=stamp))
+    return out
 
 
 def _factor_text(factors: list[dict]) -> str:

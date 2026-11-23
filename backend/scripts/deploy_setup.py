@@ -105,7 +105,8 @@ def ensure_data() -> None:
     with pymysql.connect(**settings.pymysql_kwargs(settings.db_name_v2)) as conn, conn.cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM users")
         if cur.fetchone()[0]:
-            log("2. Đã có dữ liệu, giữ nguyên")
+            log("2. Đã có dữ liệu, giữ nguyên (đổi mã sinh viên demo dạng cũ SVkkxxxx nếu còn)")
+            run(ROOT / "database" / "migrate_student_codes.py", "--apply")
             return
     log("2. CSDL trống -> sinh dữ liệu demo")
     run(ROOT / "database" / "seed_demo_v2.py")
