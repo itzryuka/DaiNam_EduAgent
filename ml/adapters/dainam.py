@@ -322,7 +322,7 @@ def engine_v2():
     from sqlalchemy import create_engine
 
     from app.config import settings  # noqa: E402
-    return create_engine(settings.database_url_v2)
+    return create_engine(settings.database_url_v2, pool_pre_ping=True, connect_args=settings.connect_args)
 
 
 def main() -> None:

@@ -158,8 +158,7 @@ def ensure_mysql(settings) -> Path | None:
 # ---------------------------------------------------------------- 4. CSDL
 def connect(settings, database: str | None = None):
     import pymysql
-    return pymysql.connect(host=settings.db_host, port=settings.db_port, user=settings.db_user,
-                           password=settings.db_password, database=database, charset="utf8mb4")
+    return pymysql.connect(**settings.pymysql_kwargs(database))
 
 
 def import_schema(settings, xampp: Path | None, filename: str = "schema_v2.sql") -> bool:

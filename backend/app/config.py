@@ -1,3 +1,5 @@
+import os
+import ssl
 from pathlib import Path
 from urllib.parse import quote_plus
 
@@ -19,6 +21,9 @@ class Settings(BaseSettings):
     db_password: str = ""
     # CSDL theo cấu trúc Đại Nam: tài khoản 3 vai trò, lớp học phần, điểm, điểm danh, AI Agent
     db_name_v2: str = "eduagent_v2"
+    # Kết nối mã hoá: bật khi CSDL đặt trên mây (TiDB Cloud bắt buộc). Máy cài XAMPP để False.
+    db_ssl: bool = False
+    db_ssl_ca: str = ""  # đường dẫn chứng chỉ CA; bỏ trống thì dùng chứng chỉ có sẵn của hệ điều hành
 
     # Đăng nhập JWT. JWT_SECRET phải là chuỗi ngẫu nhiên dài; start.py tự tạo vào .env nếu chưa có.
     jwt_secret: str = ""
@@ -36,7 +41,7 @@ class Settings(BaseSettings):
     mail_from_name: str = "EduAgent - Cảnh báo học tập"
     # Khi thử nghiệm: mọi email được chuyển tới địa chỉ này thay vì người nhận thật
     mail_redirect_to: str = ""
-    app_base_url: str = "http://127.0.0.1:8000"
+    app_base_url: str = os.environ.get("RENDER_EXTERNAL_URL", "http://127.0.0.1:8000")
     outbox_dir: Path = BACKEND_DIR / "outbox"
 
     models_dir: Path = REPO_ROOT / "ml" / "models"
@@ -54,6 +59,18 @@ class Settings(BaseSettings):
     @property
     def database_url_v2(self) -> str:
         return self._url(self.db_name_v2)
+
+    @property
+    def connect_args(self) -> dict:
+        """Tham số thêm cho PyMySQL: kết nối TLS có kiểm tra chứng chỉ khi DB_SSL=true."""
+        if not self.db_ssl:
+            return {}
+        return {"ssl": ssl.create_default_context(cafile=self.db_ssl_ca or None)}
+
+    def pymysql_kwargs(self, database: str | None = None) -> dict:
+        """Dùng cho pymysql.connect(**...) ở các script (start.py, seed, deploy_setup)."""
+        return dict(host=self.db_host, port=self.db_port, user=self.db_user, password=self.db_password,
+                    database=database, charset="utf8mb4", **self.connect_args)
 
 
 settings = Settings()

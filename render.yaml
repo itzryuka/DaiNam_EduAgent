@@ -1,0 +1,31 @@
+# Render đọc file này để tự tạo web service (Render > New > Blueprint > chọn repo này).
+# Cơ sở dữ liệu đặt ở TiDB Cloud (MySQL, miễn phí) nên dữ liệu không mất khi máy chủ ngủ hay deploy lại.
+# Hướng dẫn từng bước: docs/deploy-render.md
+services:
+  - type: web
+    name: dainam-eduagent
+    runtime: python
+    plan: free
+    region: singapore          # cùng khu vực với TiDB Cloud (Singapore) cho nhanh
+    # Cài thư viện, tạo bảng + dữ liệu demo nếu CSDL trống, train mô hình, chạy Agent lần đầu
+    buildCommand: pip install -r backend/requirements.txt && python backend/scripts/deploy_setup.py
+    startCommand: uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      # Lấy ở TiDB Cloud > cluster > Connect (sync: false = Render hỏi giá trị lúc tạo, không lưu trong Git)
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "4000"
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME_V2
+        value: eduagent_v2
+      - key: DB_SSL
+        value: "true"
+      # Khóa ký token đăng nhập: Render tự sinh chuỗi ngẫu nhiên
+      - key: JWT_SECRET
+        generateValue: true

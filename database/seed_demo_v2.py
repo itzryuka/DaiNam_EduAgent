@@ -34,7 +34,7 @@ sys.path.insert(0, str(ROOT / "backend"))
 from app.config import settings  # noqa: E402
 from app.security import hash_password  # noqa: E402
 
-DB_NAME = "eduagent_v2"
+DB_NAME = settings.db_name_v2
 DEMO_PASSWORD = "DaiNam@2026"
 SEED = 2026
 WEEKS = 15
@@ -366,8 +366,7 @@ def main() -> None:
                         help="ngày 'hôm nay' của kỳ hiện tại, vd 2026-11-16")
     args = parser.parse_args()
 
-    conn = pymysql.connect(host=settings.db_host, port=settings.db_port, user=settings.db_user,
-                           password=settings.db_password, database=DB_NAME, charset="utf8mb4", autocommit=False)
+    conn = pymysql.connect(**settings.pymysql_kwargs(DB_NAME), autocommit=False)
     with conn, conn.cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM users")
         if cur.fetchone()[0] and not args.reset:

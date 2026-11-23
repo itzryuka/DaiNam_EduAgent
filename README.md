@@ -25,6 +25,7 @@ Người hướng dẫn: ThS. Phạm Văn Tiệp.
 ```
 EduAgent/
 ├── start.bat, start.py         # chạy toàn bộ hệ thống bằng một file, báo tình trạng
+├── render.yaml, .python-version  # cấu hình chạy trên Render (docs/deploy-render.md)
 ├── ml/                         # Quang
 │   ├── data/raw/               # dữ liệu thật (KHÔNG commit)
 │   ├── data/synthetic/         # dữ liệu giả lập (sinh bằng script)
@@ -49,6 +50,7 @@ EduAgent/
 │   ├── app/services_v2.py      # nghiệp vụ dùng chung (học kỳ hiện tại, tổng hợp điểm, chuyên cần)
 │   ├── app/routers/            # auth, account, me (SV), teaching (GV/CVHT), manage, dashboard, agent, emails, admin
 │   ├── scripts/run_agent.py    # chạy Agent từ dòng lệnh
+│   ├── scripts/deploy_setup.py # khi deploy: tạo bảng, dữ liệu demo, train mô hình (không cần XAMPP)
 │   └── scripts/check_auth.py   # kiểm thử API và phân quyền (backend phải đang chạy)
 ├── frontend/                   # Tuyết
 │   ├── js/layout.js            # thanh bên + thanh điều hướng dùng chung (sửa menu ở đây)
@@ -254,6 +256,13 @@ Trang **So sánh mô hình** (http://127.0.0.1:8000/models.html) hiển thị bi
 ma trận nhầm lẫn, đặc trưng quan trọng và lịch sử các lần train. Trang này không cần MySQL.
 
 Mô hình được chọn theo **F1 kiểm định chéo 5 lần** trên tập train; tập kiểm tra (20%) chỉ dùng để báo cáo.
+
+## Chạy trên Render (bản demo trên mạng)
+
+Render chạy trang web miễn phí, cơ sở dữ liệu đặt ở **TiDB Cloud** (tương thích MySQL, miễn phí) nên dữ liệu
+không mất khi máy chủ ngủ hay deploy lại. Repo đã có sẵn `render.yaml`: tạo cluster TiDB, rồi trên Render chọn
+**New > Blueprint**, chọn repo, điền `DB_HOST`, `DB_USER`, `DB_PASSWORD`. Lần build đầu tự tạo bảng, sinh dữ liệu
+demo, train mô hình và chạy Agent. Từng bước chi tiết và cách xử lý lỗi: [docs/deploy-render.md](docs/deploy-render.md).
 
 ## Quy ước làm việc với Git
 

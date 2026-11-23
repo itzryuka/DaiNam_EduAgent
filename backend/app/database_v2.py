@@ -1,18 +1,21 @@
-"""Kết nối CSDL v2 (eduagent_v2): tài khoản 3 vai trò, lớp học phần, điểm, điểm danh.
+"""Kết nối CSDL v2 (eduagent_v2): tài khoản 3 vai trò, lớp học phần, điểm, điểm danh, AI Agent.
 
-CSDL prototype (database.py) vẫn phục vụ các trang cũ: Tổng quan, Sinh viên, Dự báo thử.
-Khi AI Agent chạy trên CSDL v2, các trang đó sẽ chuyển dần sang đây.
+Chạy được trên MariaDB/MySQL (XAMPP) và TiDB Cloud (bản deploy trên Render, DB_SSL=true).
 """
 
+import logging
 from collections.abc import Iterator
 
 from sqlalchemy import create_engine, text
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import DBAPIError, OperationalError
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from .config import settings
 
-engine_v2 = create_engine(settings.database_url_v2, pool_pre_ping=True)
+# pool_recycle: CSDL trên mây tự cắt kết nối để lâu không dùng, nên làm mới kết nối sau 5 phút
+engine_v2 = create_engine(settings.database_url_v2, pool_pre_ping=True, pool_recycle=300,
+                          connect_args=settings.connect_args)
+log = logging.getLogger(__name__)
 SessionV2 = sessionmaker(bind=engine_v2, autoflush=False)
 
 # Cột thêm sau khi CSDL đã được tạo (schema_v2.sql đã có sẵn cho máy cài mới). Chạy lại nhiều lần vẫn an toàn.
@@ -47,11 +50,18 @@ MIGRATIONS = [
 
 def migrate_v2() -> None:
     try:
-        with engine_v2.begin() as conn:
-            for sql in MIGRATIONS:
-                conn.execute(text(sql))
+        conn = engine_v2.connect()
     except OperationalError:
-        pass  # chưa có CSDL / MySQL chưa bật: start.py sẽ báo
+        return  # chưa có CSDL / MySQL chưa bật: start.py sẽ báo
+    with conn:
+        # Chạy từng câu: một câu không được hỗ trợ (vd trên TiDB) không chặn các câu sau
+        for sql in MIGRATIONS:
+            try:
+                conn.execute(text(sql))
+                conn.commit()
+            except DBAPIError as exc:
+                conn.rollback()
+                log.warning("Bỏ qua migration (%s): %s", sql.split("(")[0][:60], exc.orig)
 
 
 class BaseV2(DeclarativeBase):

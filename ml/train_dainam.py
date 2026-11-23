@@ -39,7 +39,10 @@ from common_schema import CHECKPOINT_LABELS, CHECKPOINTS, TARGET  # noqa: E402
 from dainam import FEATURE_SETS, engine_v2, load_tables, training_frames  # noqa: E402
 from train_checkpoints import matched_thresholds, scores  # noqa: E402
 
-OUT_DIR = ML_DIR / "models" / "dainam"
+sys.path.insert(0, str(ML_DIR.parent / "backend"))
+from app.config import settings  # noqa: E402
+
+OUT_DIR = settings.models_dir / "dainam"  # mặc định ml/models/dainam, đổi được bằng biến MODELS_DIR
 SEED = 42
 DAINAM_LABELS = {"M0": "Đầu kỳ", "M1": "Sau khi có điểm KT1", "M2": "Sau khi có điểm KT2, trước khi thi"}
 HIGH_PRECISION = 0.75  # mức "nguy cơ cao": trên validation, cứ 4 SV bị xếp mức này thì ít nhất 3 SV trượt thật
