@@ -29,7 +29,8 @@ staff = require_roles("admin", "lecturer")
 admin_only = require_roles("admin")
 
 STATUS_LABELS = {"studying": "Đang học", "reserved": "Bảo lưu", "dropped": "Thôi học", "graduated": "Đã tốt nghiệp"}
-CODE_RE = re.compile(r"^[A-Z0-9]{4,20}$")
+# Mã sinh viên chỉ gồm chữ số (Đại Nam: 10 số, vd 1771020001)
+CODE_RE = re.compile(r"^[0-9]{6,12}$")
 PASSWORD_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"
 MAX_IMPORT = 2000
 
@@ -255,7 +256,7 @@ def create_student(data: StudentIn, request: Request, admin: User = Depends(admi
                    db: Session = Depends(get_db_v2)):
     code = data.student_code.strip().upper()
     if not CODE_RE.match(code):
-        raise HTTPException(400, "Mã sinh viên chỉ gồm chữ và số, 4–20 ký tự")
+        raise HTTPException(400, "Mã sinh viên chỉ gồm chữ số, 6–12 số (vd 1771020001)")
     if db.scalar(select(func.count()).select_from(Student).where(Student.student_code == code)) or \
             db.scalar(select(func.count()).select_from(User).where(User.username == code)):
         raise HTTPException(409, f"Mã sinh viên {code} đã tồn tại")
@@ -369,7 +370,7 @@ def import_students(data: ImportIn, request: Request, admin: User = Depends(admi
     out, credentials = [], []
     for i, raw in enumerate(data.rows, start=2):  # dòng 1 của file Excel là tiêu đề
         errors = []
-        code = _field(raw, "student_code").upper().replace(" ", "")
+        code = _field(raw, "student_code").replace(" ", "").removesuffix(".0")  # ô số của Excel có thể thành "…0.0"
         name = re.sub(r"\s+", " ", _field(raw, "full_name"))
         class_code = re.sub(r"\s+", " ", _field(raw, "class_code")).upper()
         gender_raw = _field(raw, "gender").lower()
@@ -378,7 +379,7 @@ def import_students(data: ImportIn, request: Request, admin: User = Depends(admi
         if not any([code, name, class_code]):
             continue  # dòng trống
         if not CODE_RE.match(code):
-            errors.append("Mã SV phải gồm 4–20 chữ / số")
+            errors.append("Mã SV chỉ gồm chữ số, 6–12 số")
         elif code in seen:
             errors.append("Mã SV bị trùng trong file")
         seen.add(code)

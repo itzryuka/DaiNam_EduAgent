@@ -215,12 +215,14 @@ st, body = call("PATCH", f"/manage/students/{existing['id']}", {"status": "bay-m
 check("Trạng thái không hợp lệ -> 422", st == 422, st)
 st, imp = call("POST", "/manage/students/import", {"dry_run": True, "rows": [
     {"Mã SV": existing["student_code"], "Họ tên": existing["full_name"], "Lớp": existing["class_code"]},
-    {"Mã SV": "SVTHU9999", "Họ tên": "Sinh Viên Thử", "Lớp": existing["class_code"]},
-    {"Mã SV": "SVTHU9998", "Họ tên": "Lớp Sai", "Lớp": "KHONG-CO-LOP"}]}, token=admin)
-check("Import chạy thử phân loại đúng dòng", st == 200 and imp["summary"]["create"] == 1 and imp["summary"]["error"] == 1
+    {"Mã SV": "9999999999", "Họ tên": "Sinh Viên Thử", "Lớp": existing["class_code"]},
+    {"Mã SV": "9999999998", "Họ tên": "Lớp Sai", "Lớp": "KHONG-CO-LOP"},
+    {"Mã SV": "SVTHU9997", "Họ tên": "Mã Có Chữ", "Lớp": existing["class_code"]}]}, token=admin)
+check("Import chạy thử phân loại đúng dòng (mã có chữ cái bị từ chối)",
+      st == 200 and imp["summary"]["create"] == 1 and imp["summary"]["error"] == 2
       and not imp["credentials"], imp.get("summary") if st == 200 else imp)
 st, body = call("POST", "/manage/students/import", {"dry_run": False, "rows": [
-    {"Mã SV": "SVTHU9998", "Họ tên": "Lớp Sai", "Lớp": "KHONG-CO-LOP"}]}, token=admin)
+    {"Mã SV": "9999999998", "Họ tên": "Lớp Sai", "Lớp": "KHONG-CO-LOP"}]}, token=admin)
 check("Import có dòng lỗi -> 400, không ghi gì", st == 400, body)
 
 # Nhập điểm, điểm danh trên web (giai đoạn 3). Sửa rồi trả lại như cũ (nhật ký vẫn ghi lại).
