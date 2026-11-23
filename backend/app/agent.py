@@ -238,7 +238,9 @@ def _run(db: Session, run: AgentRun, semester: Semester, as_of: datetime, stamp:
             continue
         p = prev.get(r["enrollment_id"])
         now = effective_rank(r["level"], r["source"])
-        if p is not None and p.flag_source != "none" and p.checkpoint == r["checkpoint"] \
+        # Mốc lùi lại (vd giảng viên xóa điểm KT2 vừa nhập) không tính là mốc mới
+        if p is not None and p.flag_source != "none" \
+                and CHECKPOINTS.index(p.checkpoint) >= CHECKPOINTS.index(r["checkpoint"]) \
                 and effective_rank(p.risk_level, p.flag_source) >= now:
             continue
         info = people.get(int(r["enrollment_id"]))

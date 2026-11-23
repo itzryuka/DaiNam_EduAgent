@@ -1,6 +1,9 @@
 """Cho AI Agent tự chạy, không cần quản trị bấm nút.
 
-Một luồng nền kiểm tra mỗi phút:
+Một luồng nền:
+  0. Ngay khi giảng viên lưu điểm / điểm danh (request_run): chờ vài giây để gộp các lần lưu liên tiếp rồi chạy,
+     nên sinh viên vừa bị cảnh báo nhận email sau khoảng 10-20 giây.
+  Mỗi phút kiểm tra thêm:
   1. Theo lịch (cài đặt agent_schedule, vd "weekly:MON:07:00"): đến giờ mà tuần này chưa chạy thì chạy.
   2. Khi có dữ liệu mới (cài đặt agent_poll_minutes): giảng viên vừa nhập điểm / điểm danh sau lần chạy gần nhất
      thì chạy với lý do "grade_update". Agent chỉ báo cho các trường hợp mới hoặc xấu đi, nên chạy nhiều không spam.
@@ -9,6 +12,7 @@ Tắt bằng cài đặt agent_auto = 0. Chưa có lần chạy nào (chưa boot
 
 import logging
 import threading
+import time
 from datetime import datetime, timedelta
 
 from sqlalchemy import select, text
@@ -20,7 +24,10 @@ from .models_v2 import AgentRun, Setting
 log = logging.getLogger("eduagent.scheduler")
 DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
 TICK_SECONDS = 60
+DEBOUNCE_SECONDS = 5  # gộp nhiều lần lưu liên tiếp (vd lưu điểm từng sinh viên) thành một lần chạy
 _stop = threading.Event()
+_wake = threading.Event()  # đánh thức luồng nền sớm
+_pending = threading.Event()  # có dữ liệu mới cần chạy Agent ngay
 _state = {"last_poll": None, "last_check": None, "last_auto_run": None}
 
 
@@ -88,9 +95,43 @@ def tick(now: datetime | None = None) -> str | None:
         return trigger
 
 
-def _loop() -> None:
-    while not _stop.wait(TICK_SECONDS):
+def request_run() -> None:
+    """Gọi sau khi lưu điểm / điểm danh: Agent chạy sau vài giây thay vì chờ lượt kiểm tra 15 phút."""
+    _pending.set()
+    _wake.set()
+
+
+def run_for_new_data() -> str | None:
+    """Chạy Agent vì có điểm / điểm danh mới (lý do grade_update). Agent đang chạy thì để lượt sau thử lại."""
+    with SessionV2() as db:
+        if _setting(db, "agent_auto", "1") != "1" or not models_ready():
+            return None
+        if db.scalar(select(AgentRun.id).where(AgentRun.status == "success").limit(1)) is None:
+            return None  # chưa bootstrap
         try:
+            run = run_agent(db, "grade_update")
+        except AgentError as exc:
+            if "đang chạy" in str(exc):
+                _pending.set()
+            log.warning("Agent chạy ngay khi có điểm mới không thành công: %s", exc)
+            return None
+        _state["last_auto_run"] = datetime.now()
+        log.info("Agent chạy ngay khi có điểm / điểm danh mới: %s", run.message)
+        return "grade_update"
+
+
+def _loop() -> None:
+    while not _stop.is_set():
+        _wake.wait(TICK_SECONDS)
+        _wake.clear()
+        if _stop.is_set():
+            break
+        try:
+            if _pending.is_set():
+                time.sleep(DEBOUNCE_SECONDS)
+                _wake.clear()
+                _pending.clear()
+                run_for_new_data()
             tick()
         except Exception:  # lỗi CSDL tạm thời: thử lại lượt sau
             log.exception("Lịch chạy Agent gặp lỗi")
@@ -105,6 +146,7 @@ def start() -> None:
 
 def stop() -> None:
     _stop.set()
+    _wake.set()
 
 
 def status() -> dict:

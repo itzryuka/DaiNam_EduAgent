@@ -11,6 +11,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session, selectinload
 
 from ..agent import latest_predictions, prediction_out
+from ..scheduler import request_run
 from ..auth import require_roles
 from ..database_v2 import get_db_v2
 from ..models_v2 import (Attendance, AuditLog, Class, ClassSession, Course, CourseSection, Enrollment, Grade,
@@ -277,7 +278,9 @@ def save_grades(section_id: int, data: GradesIn, request: Request, user: User = 
     for eid in touched:
         _finalize(enrollments[eid], components, scale)
     db.commit()
-    # Agent tự chạy lại sau ít phút (scheduler thấy điểm mới) để cập nhật dự báo và cảnh báo
+    # Agent chạy lại ngay (sau vài giây) để cập nhật dự báo, cảnh báo và gửi email cho trường hợp mới
+    if touched:
+        request_run()
     return {"changed": len(touched), "detail": section_detail(section_id, user, db)}
 
 
@@ -364,4 +367,5 @@ def save_attendance(section_id: int, session_id: int, data: AttendanceIn, reques
                                "changed": changed},
                     ip_address=request.client.host if request.client else None, created_at=now))
     db.commit()
+    request_run()  # Agent cập nhật cảnh báo chuyên cần ngay (sau vài giây)
     return session_attendance(section_id, session_id, user, db)
