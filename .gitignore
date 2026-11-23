@@ -28,3 +28,6 @@ Thumbs.db
 
 # Bản lưu trữ code prototype (giai đoạn 5), không đưa lên Git
 archive/
+
+# Cấu hình riêng của Claude Code trên máy, không đưa lên Git
+.claude/
