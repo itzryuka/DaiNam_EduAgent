@@ -39,7 +39,10 @@ class Mail:
 
 
 def mode() -> str:
-    return "smtp" if settings.smtp_host else "outbox"
+    # Có SMTP_USER mà chưa dán mật khẩu (vd mới điền sẵn Gmail của nhóm) thì vẫn lưu outbox, không gửi rồi báo lỗi
+    if settings.smtp_host and (settings.smtp_password or not settings.smtp_user):
+        return "smtp"
+    return "outbox"
 
 
 def status() -> dict:

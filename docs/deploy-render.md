@@ -52,18 +52,14 @@ Mỗi lần đẩy code mới lên nhánh `main`, Render tự deploy lại. Khi 
 
 ## Gửi email thật (không bắt buộc)
 
-Chưa cấu hình thì email chỉ được lưu tạm trên máy chủ và sẽ mất khi máy chủ khởi động lại.
-Muốn gửi thật qua Gmail, vào Render > service > **Environment** và thêm các biến:
+**Gói miễn phí của Render chặn các cổng gửi mail SMTP (25, 465, 587)** từ tháng 9/2025, nên trên Render
+**không gửi được qua Gmail SMTP**. Đừng thêm biến `SMTP_*` vào Render: Gmail sẽ báo lỗi kết nối.
+Không cấu hình thì email chỉ được lưu tạm trên máy chủ và sẽ mất khi máy chủ khởi động lại.
+Trang **Email** (admin) vẫn hiện đủ nội dung các thư Agent đã tạo, nên vẫn demo được phần cảnh báo.
 
-```
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=dia-chi-gmail-cua-nhom
-SMTP_PASSWORD=mat-khau-ung-dung-16-ky-tu
-```
-
-Mật khẩu ứng dụng lấy ở Tài khoản Google > Bảo mật > Mật khẩu ứng dụng (xem README mục "Gửi email cảnh báo").
-Đường link trong email tự lấy theo địa chỉ trang trên Render.
+Gửi email thật bằng Gmail của nhóm thì chạy trên máy (XAMPP, `start.bat`): xem README mục "Gửi email cảnh báo".
+Muốn Render cũng gửi được thì có hai cách: nâng lên gói trả phí, hoặc dùng dịch vụ gửi mail qua HTTPS
+(ví dụ Brevo, có gói miễn phí). Cách thứ hai cần thêm một chút code, báo nhóm nếu cần.
 
 ## Giới hạn của gói miễn phí
 
