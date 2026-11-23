@@ -29,3 +29,9 @@ services:
       # Khóa ký token đăng nhập: Render tự sinh chuỗi ngẫu nhiên
       - key: JWT_SECRET
         generateValue: true
+      # Gửi email qua Brevo (gói free của Render chặn cổng SMTP). Bỏ trống thì email chỉ lưu tạm, không gửi
+      - key: BREVO_API_KEY
+        sync: false
+      # Địa chỉ gửi, phải đã xác nhận trong Brevo > Senders
+      - key: MAIL_FROM
+        sync: false

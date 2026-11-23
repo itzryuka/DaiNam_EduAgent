@@ -44,9 +44,11 @@ async function loadEmails() {
 }
 
 function renderConfig(c) {
-  const mode = c.mail.mode === "smtp"
+  const mode = c.mail.mode === "brevo"
+    ? `<span class="chip ok">Brevo API: gửi từ ${escapeHtml(c.mail.sender)}</span>`
+    : c.mail.mode === "smtp"
     ? `<span class="chip ok">SMTP: ${escapeHtml(c.mail.host)}</span>`
-    : '<span class="chip warn" title="Thêm SMTP_HOST, SMTP_USER, SMTP_PASSWORD vào backend/.env để gửi thật">Chế độ thử: chưa cấu hình SMTP</span>';
+    : '<span class="chip warn" title="Thêm SMTP_HOST, SMTP_USER, SMTP_PASSWORD vào backend/.env (hoặc BREVO_API_KEY trên Render) để gửi thật">Chế độ thử: chưa cấu hình gửi email</span>';
   const redirect = c.mail.redirect_to ? ` <span class="chip info">Chuyển hết tới ${escapeHtml(c.mail.redirect_to)}</span>` : "";
   document.getElementById("mail-mode").innerHTML = mode + redirect;
   document.getElementById("audiences").innerHTML = Object.entries(c.audience_labels).map(([key, label]) =>

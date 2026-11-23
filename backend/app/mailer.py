@@ -1,11 +1,13 @@
 """Gửi email và ghi nhật ký email_logs.
 
+- Có BREVO_API_KEY: gửi qua API HTTPS của Brevo (bản chạy trên Render, nơi cổng SMTP bị chặn).
 - Đã cấu hình SMTP_HOST trong backend/.env: gửi thật qua SMTP (Gmail, Outlook, máy chủ mail của trường).
 - Chưa cấu hình: chế độ thử, mỗi thư lưu thành một file .eml trong backend/outbox (mở được bằng Outlook /
   Thunderbird). Thư mục này có dữ liệu sinh viên nên đã nằm trong .gitignore.
 - MAIL_REDIRECT_TO: khi thử nghiệm với tài khoản thật, chuyển mọi thư tới một hộp thư của nhóm.
 """
 
+import json
 import re
 import smtplib
 import ssl
@@ -13,6 +15,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from email.message import EmailMessage
 from email.utils import formataddr, formatdate, make_msgid
+from urllib import error, request
 
 from sqlalchemy.orm import Session
 
@@ -38,16 +41,26 @@ class Mail:
     result: dict = field(default_factory=dict)
 
 
+BREVO_URL = "https://api.brevo.com/v3/smtp/email"
+
+
 def mode() -> str:
+    if settings.brevo_api_key:
+        return "brevo"
     # Có SMTP_USER mà chưa dán mật khẩu (vd mới điền sẵn Gmail của nhóm) thì vẫn lưu outbox, không gửi rồi báo lỗi
     if settings.smtp_host and (settings.smtp_password or not settings.smtp_user):
         return "smtp"
     return "outbox"
 
 
+def sends_real() -> bool:
+    return mode() != "outbox"
+
+
 def status() -> dict:
     """Cấu hình gửi email hiện tại, để trang quản trị hiển thị (không lộ mật khẩu)."""
-    return {"mode": mode(), "host": settings.smtp_host or None, "sender": _sender(),
+    host = "api.brevo.com" if mode() == "brevo" else settings.smtp_host or None
+    return {"mode": mode(), "host": host, "sender": _sender(),
             "redirect_to": settings.mail_redirect_to or None,
             "outbox_dir": str(settings.outbox_dir) if mode() == "outbox" else None}
 
@@ -108,6 +121,26 @@ def _send_smtp(messages: list[tuple[Mail, EmailMessage]]) -> None:
                 mail.result = {"status": "failed", "error": str(exc)}
 
 
+def _send_brevo(messages: list[tuple[Mail, EmailMessage]]) -> None:
+    """Mỗi thư một yêu cầu HTTPS tới Brevo (cổng 443, không bị chặn như SMTP)."""
+    for mail, msg in messages:
+        body = {"sender": {"name": settings.mail_from_name, "email": _sender()},
+                "to": [{"email": msg["To"]}], "subject": str(msg["Subject"])}
+        # Brevo nhận một kiểu nội dung: có HTML thì gửi HTML, không thì văn bản thường
+        body["htmlContent" if mail.html else "textContent"] = mail.html or mail.text
+        req = request.Request(BREVO_URL, data=json.dumps(body).encode("utf-8"), method="POST",
+                              headers={"api-key": settings.brevo_api_key, "accept": "application/json",
+                                       "content-type": "application/json"})
+        try:
+            with request.urlopen(req, timeout=20) as resp:
+                mail.result = {"status": "sent", "message_id": json.loads(resp.read() or b"{}").get("messageId")}
+        except error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", "replace")[:300]
+            mail.result = {"status": "failed", "error": f"Brevo trả lỗi {exc.code}: {detail}"}
+        except (OSError, ValueError) as exc:
+            mail.result = {"status": "failed", "error": f"Không kết nối được Brevo: {exc}"}
+
+
 def _save_outbox(messages: list[tuple[Mail, EmailMessage]]) -> None:
     settings.outbox_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -126,12 +159,12 @@ def deliver(db: Session, mails: list[Mail]) -> list[Mail]:
     for mail in mails:
         to = settings.mail_redirect_to or mail.to
         messages.append((mail, _build(mail, to)))
-    if mode() == "smtp":
+    if sends_real():
         # Địa chỉ của dữ liệu demo / kiểm thử không có hộp thư thật: lưu outbox, không gửi (tránh thư báo lỗi)
         real = [(m, msg) for m, msg in messages if not is_demo_address(msg["To"])]
         demo = [(m, msg) for m, msg in messages if is_demo_address(msg["To"])]
         if real:
-            _send_smtp(real)
+            (_send_brevo if mode() == "brevo" else _send_smtp)(real)
         if demo:
             _save_outbox(demo)
     else:

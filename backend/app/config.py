@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""  # Gmail: dùng Mật khẩu ứng dụng (App Password), không dùng mật khẩu đăng nhập
     smtp_ssl: bool = False  # True khi dùng cổng 465; cổng 587 dùng STARTTLS
+    # Gửi qua API HTTPS của Brevo (dùng trên Render: gói miễn phí chặn cổng SMTP). Có khóa thì ưu tiên hơn SMTP.
+    # MAIL_FROM phải là địa chỉ đã xác nhận trong Brevo > Senders.
+    brevo_api_key: str = ""
     mail_from: str = ""  # bỏ trống thì dùng SMTP_USER
     mail_from_name: str = "EduAgent - Cảnh báo học tập"
     # Khi thử nghiệm: mọi email được chuyển tới địa chỉ này thay vì người nhận thật

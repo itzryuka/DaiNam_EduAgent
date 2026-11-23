@@ -162,6 +162,12 @@ Bật / tắt ở trang **Lịch sử gửi email** (admin).
 
 Mỗi cảnh báo gửi tới **sinh viên** (lời nhắc, không có xác suất) và **CVHT / giáo viên chủ nhiệm** (kèm lý do);
 giảng viên bộ môn nhận khi admin bật. Sau mỗi lần Agent chạy, mỗi người nhận **một email tổng hợp**.
+Ngoài cảnh báo theo môn, sinh viên **mới thuộc diện cảnh báo học tập** (ĐTB học kỳ, ĐTB tích lũy thấp, nợ quá
+số tín chỉ) cũng được báo cho sinh viên và CVHT, mỗi học kỳ một lần.
+
+Trên máy gửi bằng Gmail SMTP (hướng dẫn bên dưới). Bản chạy trên Render gửi qua API Brevo vì Render miễn phí chặn
+cổng SMTP: xem [docs/deploy-render.md](docs/deploy-render.md). Địa chỉ demo `@example.edu.vn` không bao giờ được
+gửi thật, chỉ lưu vào `backend/outbox`.
 
 - **Mỗi tài khoản phải liên kết email**: trang **Tài khoản của tôi** (bấm tên ở góc phải): nhập email, nhận mã 6 số,
   nhập mã. Chưa liên kết thì mọi trang hiện nhắc nhở và người đó không nhận email. Admin có thể gán email nhà trường

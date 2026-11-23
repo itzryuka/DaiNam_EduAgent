@@ -23,7 +23,8 @@ const fmtNum = (v) => (v == null ? "–" : Number(v).toLocaleString("vi-VN"));
 // Email cảnh báo của lần chạy (gửi ở luồng nền ngay sau khi Agent chạy xong)
 function emailLine(e) {
   if (!e) return "";
-  const done = e.mode === "smtp" ? `${fmtNum(e.sent)} email đã gửi` : `${fmtNum(e.outbox)} email (chế độ thử)`;
+  const done = e.mode === "smtp" || e.mode === "brevo" ? `${fmtNum(e.sent)} email đã gửi`
+    : `${fmtNum(e.outbox)} email (chế độ thử)`;
   const fail = e.failed ? `, <span class="score-fail">${fmtNum(e.failed)} lỗi</span>` : "";
   return `<li><a href="emails.html">${done}</a>${fail}; ${fmtNum(e.unlinked)} người chưa liên kết email</li>`;
 }

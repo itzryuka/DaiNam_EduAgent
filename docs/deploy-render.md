@@ -50,16 +50,40 @@ Mỗi lần đẩy code mới lên nhánh `main`, Render tự deploy lại. Khi 
 - dữ liệu cũ trong TiDB được **giữ nguyên**, chỉ bảng còn thiếu mới được tạo;
 - mô hình được train lại trên các học kỳ đã kết thúc.
 
-## Gửi email thật (không bắt buộc)
+## Gửi email thật qua Brevo (miễn phí)
 
-**Gói miễn phí của Render chặn các cổng gửi mail SMTP (25, 465, 587)** từ tháng 9/2025, nên trên Render
-**không gửi được qua Gmail SMTP**. Đừng thêm biến `SMTP_*` vào Render: Gmail sẽ báo lỗi kết nối.
-Không cấu hình thì email chỉ được lưu tạm trên máy chủ và sẽ mất khi máy chủ khởi động lại.
-Trang **Email** (admin) vẫn hiện đủ nội dung các thư Agent đã tạo, nên vẫn demo được phần cảnh báo.
+Từ tháng 9/2025, **gói miễn phí của Render chặn các cổng gửi mail SMTP (25, 465, 587)**, nên trên Render
+không gửi qua Gmail SMTP được. Đừng thêm biến `SMTP_*` vào Render. Thay vào đó, hệ thống gửi qua **API của Brevo**
+bằng HTTPS, là đường không bị chặn. Gói miễn phí của Brevo cho 300 thư/ngày; mỗi thư có dòng chữ nhỏ "Sent with Brevo".
 
-Gửi email thật bằng Gmail của nhóm thì chạy trên máy (XAMPP, `start.bat`): xem README mục "Gửi email cảnh báo".
-Muốn Render cũng gửi được thì có hai cách: nâng lên gói trả phí, hoặc dùng dịch vụ gửi mail qua HTTPS
-(ví dụ Brevo, có gói miễn phí). Cách thứ hai cần thêm một chút code, báo nhóm nếu cần.
+1. **Tạo tài khoản Brevo:** vào https://www.brevo.com, bấm **Sign up free**, điền thông tin. Nếu Brevo hỏi
+   mục đích, chọn gửi email giao dịch (transactional).
+2. **Xác nhận địa chỉ gửi:** vào menu tài khoản (góc phải trên) > **Senders, Domains & Dedicated IPs** > **Senders** >
+   **Add a sender**:
+   - From name: `EduAgent - Cảnh báo học tập`
+   - From email: `dainameduagent@gmail.com`
+
+   Brevo gửi mã xác nhận về hộp thư Gmail đó, bạn mở thư và nhập mã.
+3. **Tạo khóa API:** vào menu tài khoản > **SMTP & API** > tab **API Keys** > **Generate a new API key**, đặt tên
+   `EduAgent-Render`. Copy khóa (dạng `xkeysib-...`). Khóa chỉ hiện một lần, **không gửi khóa cho ai, không dán vào code**.
+4. **Thêm vào Render:** vào service **dainam-eduagent** > **Environment** > **Add Environment Variable**:
+
+   | Key | Value |
+   |---|---|
+   | `BREVO_API_KEY` | khóa vừa tạo |
+   | `MAIL_FROM` | `dainameduagent@gmail.com` |
+
+   Bấm **Save, rebuild, and deploy** (hoặc Save rồi **Manual Deploy**).
+5. **Thử:** đăng nhập tài khoản đã liên kết email, vào **Tài khoản của tôi** > **Gửi thư thử**. Trang **Email** của admin
+   hiện "Brevo API: gửi từ dainameduagent@gmail.com".
+
+**Lưu ý:**
+- Thư gửi qua Brevo dưới địa chỉ `@gmail.com` có thể rơi vào mục **Spam/Quảng cáo**. Lần đầu nhận, bấm
+  "Không phải spam" để các thư sau vào hộp thư đến.
+- Địa chỉ demo `@example.edu.vn` không bao giờ được gửi thật, chỉ lưu tạm. Muốn nhận thư thì phải liên kết một hộp thư thật.
+- Thư báo lỗi Brevo (sai khóa, địa chỉ gửi chưa xác nhận...) hiện ở trang **Email** của admin, cột trạng thái "Lỗi".
+
+Chạy trên máy (XAMPP, `start.bat`) thì vẫn gửi bằng Gmail SMTP như cũ: xem README mục "Gửi email cảnh báo".
 
 ## Giới hạn của gói miễn phí
 
