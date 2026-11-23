@@ -48,7 +48,10 @@ const MENU = [
     icon: "fa-brain",
     label: "Mô hình AI",
     roles: ["admin", "lecturer"],
-    links: [{ label: "So sánh mô hình", href: "models.html" }],
+    links: [
+      { label: "So sánh mô hình", href: "models.html" },
+      { label: "Sức khỏe AI", href: "ai-health.html", roles: ["admin"] },
+    ],
   },
   {
     icon: "fa-user-shield",

@@ -8,6 +8,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from ..agent import CHECKPOINT_LABELS, MODEL_DIR, AgentError, models_ready, run_agent
+from .. import mailer
 from ..auth import get_current_user, require_roles
 from ..database_v2 import get_db_v2
 from ..models_v2 import AgentRun, Alert, Class, Course, CourseSection, Enrollment, Lecturer, Prediction, Student, User
@@ -43,6 +44,41 @@ def run_now(user: User = Depends(require_roles("admin")), db: Session = Depends(
 def runs(limit: int = 15, user: User = Depends(staff), db: Session = Depends(get_db_v2)):
     rows = db.scalars(select(AgentRun).order_by(AgentRun.id.desc()).limit(min(limit, 100))).all()
     return [_run_out(r) for r in rows]
+
+
+def _health_row(run: AgentRun) -> dict:
+    s = run.stats or {}
+    combined, model, report, email = (s.get(k) or {} for k in ("combined", "model", "report", "email"))
+    duration = s.get("duration_s")
+    if duration is None and run.finished_at:
+        duration = round((run.finished_at - run.started_at).total_seconds(), 1)
+    return {
+        "id": run.id, "trigger": run.trigger_type, "trigger_label": TRIGGER_LABELS[run.trigger_type],
+        "started_at": run.started_at, "as_of": run.as_of, "status": run.status, "duration_s": duration,
+        "message": run.message,
+        "flagged": combined.get("flagged", 0), "both": combined.get("both", 0), "rule": combined.get("rule", 0),
+        "ai": combined.get("ai", 0), "students": combined.get("students", 0),
+        "predicted": model.get("predicted", run.n_predictions), "high": model.get("high", 0),
+        "medium": model.get("medium", 0),
+        "alerts": report.get("alerts", run.n_alerts), "academic_students": report.get("academic_students", 0),
+        "emails": {k: email.get(k, 0) for k in ("sent", "outbox", "failed", "unlinked")},
+        "by_checkpoint": (s.get("observe") or {}).get("by_checkpoint"),
+        "models": {cp: m.get("model") for cp, m in (model.get("models") or {}).items()},
+    }
+
+
+@router.get("/agent/health", summary="Sức khỏe AI theo thời gian: số liệu từng lần Agent chạy (quản trị)")
+def health(limit: int = 50, trigger: str | None = None, user: User = Depends(require_roles("admin")),
+           db: Session = Depends(get_db_v2)):
+    query = select(AgentRun)
+    if trigger:
+        if trigger not in TRIGGER_LABELS:
+            raise HTTPException(400, "Lý do chạy không hợp lệ")
+        query = query.where(AgentRun.trigger_type == trigger)
+    rows = db.scalars(query.order_by(AgentRun.id.desc()).limit(min(max(limit, 1), 200))).all()
+    totals = dict(db.execute(select(AgentRun.status, func.count()).group_by(AgentRun.status)).all())
+    return {"runs": [_health_row(r) for r in reversed(rows)], "totals": totals,
+            "mail_mode": mailer.mode(), "models_ready": models_ready(), "now": datetime.now()}
 
 
 @router.get("/agent/overview", summary="Lần chạy gần nhất của Agent (số liệu 5 tầng)")

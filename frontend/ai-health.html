@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduAgent</title>
+    <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+    <link href="css/style.css?v=20261136" rel="stylesheet" />
+    <link rel="expect" href="#layout-ready" blocking="render" />
+  </head>
+  <body data-title="Sức khỏe AI" data-roles="admin">
+    <main>
+      <div id="error"></div>
+
+      <div class="toolbar health-toolbar">
+        <p class="dash-context" id="context">Đang tải...</p>
+        <div class="toolbar-right">
+          <select class="form-control filter-select" id="trigger" aria-label="Lọc theo lý do chạy">
+            <option value="">Mọi lý do chạy</option>
+            <option value="grade_update">Có điểm mới</option>
+            <option value="schedule">Theo lịch</option>
+            <option value="manual">Chạy tay</option>
+            <option value="replay">Chạy lại</option>
+          </select>
+          <select class="form-control filter-select" id="limit" aria-label="Số lần chạy">
+            <option value="20">20 lần gần nhất</option>
+            <option value="50" selected>50 lần gần nhất</option>
+            <option value="100">100 lần gần nhất</option>
+          </select>
+          <button class="btn btn-light btn-sm" type="button" id="reload"><i class="fas fa-rotate"></i> Làm mới</button>
+        </div>
+      </div>
+
+      <div class="stat-grid health-stats">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-heart-pulse"></i></div>
+          <div>
+            <div class="stat-label">Lần chạy thành công</div>
+            <div class="stat-value" id="stat-success">–</div>
+            <div class="stat-sub" id="sub-success"></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-stopwatch"></i></div>
+          <div>
+            <div class="stat-label">Thời gian chạy trung bình</div>
+            <div class="stat-value" id="stat-duration">–</div>
+            <div class="stat-sub" id="sub-duration"></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon ai"><i class="fas fa-wand-magic-sparkles"></i></div>
+          <div>
+            <div class="stat-label">AI phát hiện sớm (lần gần nhất)</div>
+            <div class="stat-value" id="stat-ai">–</div>
+            <div class="stat-sub" id="sub-ai"></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber"><i class="fas fa-envelope"></i></div>
+          <div>
+            <div class="stat-label">Email cảnh báo</div>
+            <div class="stat-value" id="stat-email">–</div>
+            <div class="stat-sub" id="sub-email"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="problems"></div>
+
+      <div class="dash-grid even">
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Lượt cần chú ý theo nguồn phát hiện</h3>
+            <span class="muted">lượt học (SV × môn)</span>
+          </div>
+          <div class="panel-body"><div class="chart-box"><canvas id="chart-source" aria-label="Biểu đồ lượt cần chú ý theo nguồn qua các lần chạy"></canvas></div></div>
+        </section>
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Tỷ lệ do AI phát hiện sớm</h3>
+            <span class="muted">% lượt cần chú ý mà luật quy chế chưa bắt</span>
+          </div>
+          <div class="panel-body"><div class="chart-box"><canvas id="chart-ai-share" aria-label="Biểu đồ tỷ lệ AI phát hiện sớm"></canvas></div></div>
+        </section>
+      </div>
+
+      <div class="dash-grid even">
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Dự báo nguy cơ của mô hình</h3>
+            <span class="muted">lượt học</span>
+          </div>
+          <div class="panel-body"><div class="chart-box"><canvas id="chart-level" aria-label="Biểu đồ mức nguy cơ mô hình dự báo"></canvas></div></div>
+        </section>
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Cảnh báo mới mỗi lần chạy</h3>
+            <span class="muted">số cảnh báo tạo ra</span>
+          </div>
+          <div class="panel-body"><div class="chart-box"><canvas id="chart-alerts" aria-label="Biểu đồ số cảnh báo mới"></canvas></div></div>
+        </section>
+      </div>
+
+      <div class="dash-grid even">
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Email sau mỗi lần chạy</h3>
+            <span class="muted">số email</span>
+          </div>
+          <div class="panel-body"><div class="chart-box"><canvas id="chart-email" aria-label="Biểu đồ email gửi sau mỗi lần chạy"></canvas></div></div>
+        </section>
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Thời gian chạy</h3>
+            <span class="muted">giây · điểm đỏ là lần chạy lỗi</span>
+          </div>
+          <div class="panel-body"><div class="chart-box"><canvas id="chart-duration" aria-label="Biểu đồ thời gian chạy"></canvas></div></div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h3>Chi tiết từng lần chạy</h3>
+          <span class="muted" id="table-note"></span>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Lần</th><th>Thời gian</th><th>Lý do</th><th>Trạng thái</th><th class="num">Giây</th>
+                <th class="num">Cần chú ý</th><th class="num">AI sớm</th><th class="num">Nguy cơ cao</th>
+                <th class="num">Cảnh báo mới</th><th class="num">Email</th><th>Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody id="rows"><tr class="empty-row"><td colspan="11">Đang tải...</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="js/api.js?v=20261136"></script>
+    <script src="js/layout.js?v=20261136"></script>
+    <script src="js/ai-health.js?v=20261136"></script>
+  </body>
+</html>
