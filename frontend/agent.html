@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduAgent</title>
+    <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+    <link href="css/style.css?v=20261134" rel="stylesheet" />
+    <link rel="expect" href="#layout-ready" blocking="render" />
+  </head>
+  <body data-title="AI Agent" data-roles="admin,lecturer">
+    <main>
+      <div id="error"></div>
+
+      <!-- Trạng thái Agent -->
+      <section class="agent-hero">
+        <div class="agent-hero-icon"><i class="fas fa-robot"></i></div>
+        <div class="agent-hero-text">
+          <h2>AI Agent đang giám sát <span id="hero-semester">học kỳ hiện tại</span></h2>
+          <p id="hero-run">Đang tải...</p>
+        </div>
+        <button class="btn btn-primary" id="run-btn" type="button" hidden>
+          <i class="fas fa-play"></i> Chạy Agent ngay
+        </button>
+      </section>
+
+      <!-- Số liệu chính -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fas fa-user-clock"></i></div>
+          <div>
+            <div class="stat-label">Lượt học cần chú ý</div>
+            <div class="stat-value" id="k-flagged">–</div>
+            <div class="stat-sub" id="k-flagged-sub"></div>
+          </div>
+        </div>
+        <div class="stat-card ai-card">
+          <div class="stat-icon ai"><i class="fas fa-wand-magic-sparkles"></i></div>
+          <div>
+            <div class="stat-label">AI phát hiện sớm</div>
+            <div class="stat-value ai" id="k-ai">–</div>
+            <div class="stat-sub">chưa vi phạm luật nào</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber"><i class="fas fa-filter-circle-xmark"></i></div>
+          <div>
+            <div class="stat-label">Luật bắt, AI xếp thấp</div>
+            <div class="stat-value" id="k-rule">–</div>
+            <div class="stat-sub">có thể là báo nhầm</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-paper-plane"></i></div>
+          <div>
+            <div class="stat-label">Cảnh báo mới đã gửi</div>
+            <div class="stat-value" id="k-alerts">–</div>
+            <div class="stat-sub" id="k-alerts-sub"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 tầng của Agent -->
+      <section class="panel">
+        <div class="panel-header">
+          <h3>Agent đã làm gì trong lần chạy gần nhất</h3>
+          <span class="muted" id="pipeline-meta"></span>
+        </div>
+        <div class="pipeline" id="pipeline"><p class="muted">Đang tải...</p></div>
+      </section>
+
+      <!-- Danh sách -->
+      <section class="panel" id="list">
+        <div class="panel-header">
+          <h3>Sinh viên cần chú ý</h3>
+          <form class="toolbar-right" id="list-search" role="search">
+            <input type="search" id="q" placeholder="Mã SV, họ tên, môn..." aria-label="Tìm trong danh sách" />
+          </form>
+        </div>
+        <div class="tabs" role="tablist" id="tabs">
+          <button class="tab active" type="button" data-source="ai" role="tab">
+            <i class="fas fa-wand-magic-sparkles"></i> AI phát hiện sớm <span class="tab-count" data-count="ai"></span>
+          </button>
+          <button class="tab" type="button" data-source="both" role="tab">Cả luật và AI <span class="tab-count" data-count="both"></span></button>
+          <button class="tab" type="button" data-source="rule" role="tab">Chỉ luật <span class="tab-count" data-count="rule"></span></button>
+          <button class="tab" type="button" data-source="" role="tab">Tất cả cần chú ý</button>
+        </div>
+        <p class="panel-hint list-hint" id="tab-hint"></p>
+        <div class="table-scroll">
+          <table class="agent-table">
+            <thead>
+              <tr>
+                <th>Sinh viên</th>
+                <th>Môn học</th>
+                <th>Nguy cơ trượt (AI)</th>
+                <th>Diễn biến</th>
+                <th>Lý do chính của AI</th>
+                <th>Luật quy chế</th>
+              </tr>
+            </thead>
+            <tbody id="rows"><tr class="empty-row"><td colspan="6">Đang tải...</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Kiểm chứng trên kỳ cũ -->
+      <section class="panel" id="backtest">
+        <div class="panel-header">
+          <h3>Kiểm chứng: cho Agent chạy lại học kỳ <span id="bt-semester">gần nhất</span> (đã biết kết quả thật)</h3>
+          <div class="seg" id="bt-cp" role="tablist"></div>
+        </div>
+        <div class="panel-body">
+          <p class="panel-hint" id="bt-intro"></p>
+          <div class="bt-grid">
+            <div class="bt-numbers" id="bt-numbers"></div>
+            <div class="chart-box small"><canvas id="bt-chart"></canvas></div>
+          </div>
+          <h4 class="sub-title">Ví dụ: AI cảnh báo đúng, luật bỏ sót</h4>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Sinh viên</th><th>Môn</th><th class="num">AI dự báo lúc đó</th><th>Kết quả thật</th></tr></thead>
+              <tbody id="bt-examples"></tbody>
+            </table>
+          </div>
+          <p class="note" id="bt-note"></p>
+        </div>
+      </section>
+
+      <!-- Nhật ký -->
+      <section class="panel">
+        <div class="panel-header"><h3>Nhật ký các lần chạy</h3></div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>Lúc</th><th>Kiểu</th><th>Dữ liệu tính đến</th><th>Kết quả</th><th class="num">Thời gian</th></tr>
+            </thead>
+            <tbody id="runs"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="js/api.js?v=20261134"></script>
+    <script src="js/layout.js?v=20261134"></script>
+    <script src="js/agent.js?v=20261134"></script>
+  </body>
+</html>

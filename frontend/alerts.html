@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduAgent</title>
+    <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+    <link href="css/style.css?v=20261134" rel="stylesheet" />
+    <link rel="expect" href="#layout-ready" blocking="render" />
+  </head>
+  <body data-title="Cảnh báo của tôi">
+    <main>
+      <div id="error"></div>
+      <section class="panel">
+        <div class="panel-header">
+          <h3 id="alerts-title">Cảnh báo từ AI Agent</h3>
+          <div class="toolbar-right">
+            <label class="check-inline"><input type="checkbox" id="unread-only" /> Chỉ chưa đọc</label>
+            <button class="btn btn-light btn-sm" type="button" id="read-all"><i class="fas fa-check-double"></i> Đánh dấu đã đọc hết</button>
+          </div>
+        </div>
+        <p class="panel-hint list-hint" id="alerts-hint"></p>
+        <ul class="alert-list" id="alerts"><li class="muted" style="padding: 20px">Đang tải...</li></ul>
+      </section>
+    </main>
+
+    <script src="js/api.js?v=20261134"></script>
+    <script src="js/layout.js?v=20261134"></script>
+    <script src="js/alerts.js?v=20261134"></script>
+  </body>
+</html>

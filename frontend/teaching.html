@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduAgent</title>
+    <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+    <link href="css/style.css?v=20261134" rel="stylesheet" />
+    <link rel="expect" href="#layout-ready" blocking="render" />
+  </head>
+  <body data-title="Lớp học phần" data-roles="lecturer,admin">
+    <main>
+      <div id="error"></div>
+      <p class="panel-hint" id="mode-hint" hidden></p>
+      <div class="section-grid" id="sections"><p class="muted">Đang tải...</p></div>
+
+      <section class="panel" id="detail" hidden>
+        <div class="panel-header">
+          <h3 id="detail-title"></h3>
+          <span class="muted" id="detail-meta"></span>
+        </div>
+        <div class="tabs" id="detail-tabs" role="tablist">
+          <button class="tab active" type="button" data-mode="view"><i class="fas fa-table"></i> Tình hình lớp</button>
+          <button class="tab" type="button" data-mode="grades"><i class="fas fa-pen-to-square"></i> Nhập điểm</button>
+          <button class="tab" type="button" data-mode="attendance"><i class="fas fa-calendar-check"></i> Điểm danh</button>
+          <button class="tab" type="button" data-mode="log"><i class="fas fa-clock-rotate-left"></i> Nhật ký sửa điểm</button>
+        </div>
+        <div id="detail-message" class="panel-body" hidden></div>
+
+        <!-- Tình hình lớp -->
+        <div id="mode-view">
+          <div class="panel-body mode-toolbar">
+            <label class="check-inline"><input type="checkbox" id="attention-only" /> Chỉ sinh viên cần chú ý</label>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead id="detail-head"></thead>
+              <tbody id="detail-rows"></tbody>
+            </table>
+          </div>
+          <div class="panel-body">
+            <p class="note">
+              <b>ĐQT</b>: điểm quá trình trên các đầu điểm đã có (thang 10). <b>Thi tối thiểu</b>: điểm thi cần đạt để
+              TBCHP ≥ 4.0, chỉ tính khi đã có đủ điểm kiểm tra (CC chưa nhập thì tạm tính theo điểm danh).
+              <b>Luật quy chế</b>: vắng nhiều, điểm quá trình thấp. <b>Nguy cơ trượt (AI)</b>: xác suất trượt do AI Agent dự báo
+              (rê chuột để xem lý do). Nhãn <b>AI phát hiện sớm</b>: sinh viên chưa vi phạm luật nào nhưng AI dự báo có nguy cơ.
+              Chi tiết ở trang <a href="agent.html">AI Agent</a>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Nhập điểm -->
+        <div id="mode-grades" hidden>
+          <div class="panel-body mode-toolbar">
+            <span class="muted" id="grades-hint">Điểm thang 10, một chữ số thập phân. Enter để xuống dòng dưới. Để trống = chưa có điểm.</span>
+            <button class="btn btn-primary btn-sm" type="button" id="grades-save" disabled><i class="fas fa-floppy-disk"></i> Lưu điểm</button>
+          </div>
+          <div class="table-scroll">
+            <table class="entry-table">
+              <thead id="grades-head"></thead>
+              <tbody id="grades-rows"></tbody>
+            </table>
+          </div>
+          <div class="panel-body">
+            <p class="note">Có điểm thi thì hệ thống tự tính TBCHP và điểm chữ (đầu điểm chưa nhập tính 0). Mọi lần nhập,
+              sửa, xóa điểm đều được ghi vào nhật ký. Sau khi lưu, AI Agent tự chạy lại trong vài phút để cập nhật nguy cơ và cảnh báo.</p>
+          </div>
+        </div>
+
+        <!-- Điểm danh -->
+        <div id="mode-attendance" hidden>
+          <div class="panel-body mode-toolbar">
+            <select class="form-control filter-select" id="session-select" aria-label="Chọn buổi học"></select>
+            <button class="btn btn-light btn-sm" type="button" id="att-all-present"><i class="fas fa-check-double"></i> Còn lại đều có mặt</button>
+            <button class="btn btn-primary btn-sm" type="button" id="att-save" disabled><i class="fas fa-floppy-disk"></i> Lưu điểm danh</button>
+          </div>
+          <div class="table-scroll">
+            <table class="entry-table">
+              <thead><tr><th>Mã SV</th><th>Họ tên</th><th>Lớp</th><th>Điểm danh</th><th class="num">Đã vắng</th></tr></thead>
+              <tbody id="att-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Nhật ký sửa điểm -->
+        <div id="mode-log" hidden>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Thời gian</th><th>Người sửa</th><th>Thao tác</th><th>Sinh viên</th><th>Đầu điểm</th><th class="num">Điểm cũ</th><th class="num">Điểm mới</th></tr></thead>
+              <tbody id="log-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="js/api.js?v=20261134"></script>
+    <script src="js/layout.js?v=20261134"></script>
+    <script src="js/teaching.js?v=20261134"></script>
+  </body>
+</html>

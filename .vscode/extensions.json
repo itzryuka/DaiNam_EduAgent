@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-toolsai.jupyter",
+    "esbenp.prettier-vscode",
+    "ritwickdey.liveserver",
+    "cweijan.vscode-mysql-client2",
+    "eamodio.gitlens",
+    "ms-vsliveshare.vsliveshare"
+  ]
+}

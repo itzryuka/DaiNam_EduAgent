@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Đăng nhập · EduAgent</title>
+  <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+  <link href="css/style.css?v=20261134" rel="stylesheet" />
+  <link rel="expect" href="#layout-ready" blocking="render" />
+</head>
+
+<body class="login-page">
+  <div class="login-wrap">
+    <form class="login-card" id="login-form">
+      <div class="login-brand">
+        <img class="login-logo" src="images/logo-dainam.svg" alt="Trường Đại học Đại Nam"
+          onerror="this.onerror=null; this.src='images/logo.svg'" />
+        <span class="login-school">Trường Đại học Đại Nam</span>
+        <span class="brand-name">Edu<span>Agent</span></span>
+        <p class="login-subtitle">Hệ thống cảnh báo sớm sinh viên có nguy cơ học tập yếu</p>
+      </div>
+
+      <div id="login-message"></div>
+
+      <div class="form-group">
+        <label for="username">Tên đăng nhập</label>
+        <input class="form-control" id="username" autocomplete="username" placeholder="Mã sinh viên hoặc mã giảng viên"
+          required autofocus />
+      </div>
+      <div class="form-group">
+        <label for="password">Mật khẩu</label>
+        <input class="form-control" id="password" type="password" autocomplete="current-password" required />
+      </div>
+
+      <button class="btn login-submit" type="submit" id="login-btn"><i class="fas fa-right-to-bracket"></i> Đăng nhập</button>
+    </form>
+    <p class="login-footer">Khoa Công nghệ thông tin · Trường Đại học Đại Nam</p>
+  </div>
+
+  <script src="js/api.js?v=20261134"></script>
+  <script>
+    // Đăng nhập: gọi POST /api/auth/login, lưu token, chuyển tới trang đang muốn mở (?next=) hoặc trang đầu của vai trò.
+    const form = document.getElementById("login-form");
+    const message = document.getElementById("login-message");
+    const button = document.getElementById("login-btn");
+
+    // Chỉ cho quay lại trang nội bộ (tên file .html), không cho chuyển hướng ra trang ngoài
+    function nextPage(role) {
+      const next = new URLSearchParams(location.search).get("next");
+      return next && /^[\w-]+\.html(\?[^#]*)?$/.test(next) && next !== "login.html" ? next : ROLE_HOME[role];
+    }
+
+    // Đã đăng nhập rồi thì vào thẳng
+    const existing = getAuth();
+    if (existing) location.replace(nextPage(existing.user.role));
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      message.innerHTML = "";
+      button.disabled = true;
+      try {
+        const result = await apiPost("/auth/login", {
+          username: document.getElementById("username").value.trim(),
+          password: document.getElementById("password").value,
+        });
+        saveAuth(result);
+        location.replace(nextPage(result.user.role));
+      } catch (error) {
+        showError(message, error);
+        document.getElementById("password").select();
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduAgent</title>
+    <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+    <link href="css/style.css?v=20261134" rel="stylesheet" />
+    <link rel="expect" href="#layout-ready" blocking="render" />
+  </head>
+  <body data-title="Tổng quan" data-roles="admin,lecturer">
+    <main>
+      <div id="error"></div>
+      <p class="dash-context" id="context">Đang tải...</p>
+
+      <div class="stat-grid five">
+        <a class="stat-card" id="card-students" href="manage-students.html">
+          <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+          <div>
+            <div class="stat-label">Sinh viên</div>
+            <div class="stat-value" id="stat-students">–</div>
+            <div class="stat-sub" id="sub-students"></div>
+          </div>
+        </a>
+        <a class="stat-card" id="card-flagged" href="manage-students.html?risk=flagged">
+          <div class="stat-icon amber"><i class="fas fa-triangle-exclamation"></i></div>
+          <div>
+            <div class="stat-label">Cần chú ý kỳ này</div>
+            <div class="stat-value" id="stat-flagged">–</div>
+            <div class="stat-sub" id="sub-flagged"></div>
+          </div>
+        </a>
+        <a class="stat-card" id="card-high" href="manage-students.html?risk=high">
+          <div class="stat-icon red"><i class="fas fa-fire"></i></div>
+          <div>
+            <div class="stat-label">Nguy cơ cao</div>
+            <div class="stat-value danger" id="stat-high">–</div>
+            <div class="stat-sub" id="sub-high"></div>
+          </div>
+        </a>
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fas fa-file-circle-exclamation"></i></div>
+          <div>
+            <div class="stat-label">Cảnh báo học tập</div>
+            <div class="stat-value" id="stat-warned">–</div>
+            <div class="stat-sub" id="sub-warned"></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-calendar-check"></i></div>
+          <div>
+            <div class="stat-label">Tỷ lệ vắng kỳ này</div>
+            <div class="stat-value" id="stat-absent">–</div>
+            <div class="stat-sub" id="sub-absent"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-grid even">
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Nguy cơ theo lớp hành chính</h3>
+            <span class="muted">số sinh viên</span>
+          </div>
+          <div class="panel-body"><div class="chart-box"><canvas id="chart-class" aria-label="Biểu đồ nguy cơ theo lớp"></canvas></div></div>
+        </section>
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Môn học có tỷ lệ cần chú ý cao nhất</h3>
+            <span class="muted">% lượt đăng ký</span>
+          </div>
+          <div class="panel-body"><div class="chart-box"><canvas id="chart-course" aria-label="Biểu đồ môn học nhiều nguy cơ"></canvas></div></div>
+        </section>
+      </div>
+
+      <div class="dash-grid even">
+        <section class="panel">
+          <div class="panel-header">
+            <h3>ĐTB học kỳ qua các học kỳ</h3>
+            <span class="muted">trung bình hệ 4</span>
+          </div>
+          <div class="panel-body">
+            <div class="chart-box small"><canvas id="chart-gpa" aria-label="Biểu đồ điểm trung bình theo học kỳ"></canvas></div>
+            <div class="table-scroll"><table class="mini-table">
+              <thead><tr><th>Học kỳ</th><th class="num">Số SV</th><th class="num">ĐTB</th><th class="num">TC đạt</th><th class="num">Cảnh báo</th></tr></thead>
+              <tbody id="gpa-rows"></tbody>
+            </table></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Xếp loại học lực tích lũy</h3>
+            <span class="muted" id="rank-meta">số sinh viên</span>
+          </div>
+          <div class="panel-body">
+            <div class="chart-box small"><canvas id="chart-rank" aria-label="Biểu đồ xếp loại học lực"></canvas></div>
+            <h4 class="sub-title">Lý do cảnh báo học tập</h4>
+            <div id="reasons"></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h3>Tỷ lệ vắng theo tuần học</h3>
+          <span class="muted">vắng có phép và không phép / lượt điểm danh</span>
+        </div>
+        <div class="panel-body"><div class="chart-box small"><canvas id="chart-week" aria-label="Biểu đồ tỷ lệ vắng theo tuần"></canvas></div></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h3>10 sinh viên nguy cơ trượt cao nhất</h3>
+          <a id="top-all" href="manage-students.html?risk=flagged">Xem tất cả <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>Mã SV</th><th>Họ tên</th><th>Lớp</th><th>Môn nguy cơ nhất</th><th>Nguy cơ trượt (AI)</th><th>Phát hiện bởi</th><th class="num">Số môn cần chú ý</th></tr>
+            </thead>
+            <tbody id="top-rows"><tr class="empty-row"><td colspan="7">Đang tải...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="panel-body"><p class="note">Nguy cơ theo lần chạy gần nhất của <a href="agent.html">AI Agent</a>. Kết quả học tập
+          tính như trang Kết quả học tập của sinh viên (ĐTB tích lũy: mỗi môn lấy lần học tốt nhất).</p></div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="js/api.js?v=20261134"></script>
+    <script src="js/layout.js?v=20261134"></script>
+    <script src="js/dashboard.js?v=20261134"></script>
+  </body>
+</html>

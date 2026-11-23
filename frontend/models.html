@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduAgent</title>
+    <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+    <link href="css/style.css?v=20261134" rel="stylesheet" />
+    <link rel="expect" href="#layout-ready" blocking="render" />
+  </head>
+  <body data-title="So sánh mô hình AI" data-roles="admin,lecturer">
+    <main>
+      <div id="error"></div>
+
+      <!-- Mô hình chính của đề tài: dữ liệu thật công khai OULAD -->
+      <section class="panel" id="oulad">
+        <div class="panel-header">
+          <h3>Mô hình chính: dự báo trượt môn theo mốc trên dữ liệu thật (OULAD)</h3>
+          <span class="muted" id="oulad-info"></span>
+        </div>
+        <div class="panel-body">
+          <p class="panel-hint" id="oulad-intro"></p>
+          <div class="oulad-highlight" id="oulad-highlight"></div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mốc</th><th>Mô hình chọn</th><th class="num">PR-AUC</th>
+                  <th class="num">Quy tắc<br /><span class="weight">bắt / báo nhầm</span></th>
+                  <th class="num">AI, cùng recall<br /><span class="weight">bắt / báo nhầm</span></th>
+                  <th class="num">AI, cùng precision<br /><span class="weight">bắt / báo nhầm</span></th>
+                  <th>Kết luận</th>
+                </tr>
+              </thead>
+              <tbody id="oulad-rows"><tr class="empty-row"><td colspan="7">Đang tải...</td></tr></tbody>
+            </table>
+          </div>
+          <div class="dash-grid even oulad-charts">
+            <div><h4 class="sub-title">Số cảnh báo nhầm: quy tắc và AI (ngưỡng chọn để bắt ngang quy tắc)</h4><div class="chart-box small"><canvas id="oulad-chart"></canvas></div></div>
+            <div><h4 class="sub-title">Đặc trưng quan trọng nhất ở mốc M1</h4><div class="chart-box small"><canvas id="oulad-importance"></canvas></div></div>
+          </div>
+          <p class="note">
+            <b>So công bằng</b>: chọn ngưỡng của AI trên kỳ validation sao cho AI đứng ngang quy tắc về recall (bắt được
+            ngần ấy SV trượt) rồi so số báo nhầm; hoặc ngang về precision rồi so số bắt được. Chỉ kết luận "AI hơn quy tắc"
+            khi vừa bắt không ít hơn vừa báo nhầm không nhiều hơn trên kỳ test. Cùng quy trình này được áp dụng cho
+            dữ liệu Đại Nam ở trang <a href="agent.html#backtest">AI Agent</a>.
+          </p>
+        </div>
+      </section>
+
+      <h3 class="section-divider">Bản prototype: dự báo học yếu cả học kỳ trên dữ liệu giả lập</h3>
+
+      <div class="dash-grid">
+        <section class="panel accent">
+          <div class="panel-header">
+            <h3>Mô hình được chọn</h3>
+            <span class="muted" id="run-info"></span>
+          </div>
+          <div class="panel-body">
+            <div class="best-name" id="best-name">–</div>
+            <div class="muted" id="best-reason"></div>
+            <div class="metric-row" id="best-metrics"></div>
+            <p class="muted" id="run-note" style="margin-top: 14px"></p>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-header"><h3>Đọc các chỉ số thế nào?</h3></div>
+          <div class="panel-body">
+            <ul class="metric-guide">
+              <li><b>Recall</b>: trong số sinh viên học yếu thật, mô hình bắt được bao nhiêu %. <b>Quan trọng nhất</b> với cảnh báo sớm, vì bỏ sót nghĩa là sinh viên không được hỗ trợ.</li>
+              <li><b>Precision</b>: trong số sinh viên bị cảnh báo, bao nhiêu % đúng là học yếu. Thấp thì CVHT mất công với cảnh báo nhầm.</li>
+              <li><b>F1</b>: cân bằng giữa Recall và Precision. <b>CV F1</b> là F1 trung bình qua 5 lần kiểm định chéo trên tập train, ổn định hơn nên dùng để chọn mô hình.</li>
+              <li><b>Accuracy</b>: tỷ lệ đoán đúng chung. Dễ gây hiểu lầm khi ít sinh viên học yếu.</li>
+              <li><b>ROC-AUC</b>: khả năng xếp sinh viên yếu có xác suất cao hơn sinh viên bình thường, không phụ thuộc ngưỡng 50%.</li>
+            </ul>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <div class="panel-header"><h3>So sánh chỉ số giữa các mô hình</h3></div>
+        <div class="panel-body"><div class="chart-box"><canvas id="chart-metrics"></canvas></div></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h3>Bảng kết quả</h3>
+          <span class="muted">In đậm: tốt nhất mỗi cột</span>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead id="metrics-head"></thead>
+            <tbody id="metrics-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header"><h3>Ma trận nhầm lẫn trên tập kiểm tra</h3></div>
+        <div class="panel-body">
+          <p class="panel-hint">Ô đỏ "Bỏ sót" là sinh viên học yếu mà mô hình không cảnh báo, càng ít càng tốt.</p>
+          <div class="cm-grid" id="confusion-matrices"></div>
+        </div>
+      </section>
+
+      <div class="dash-grid even">
+        <section class="panel">
+          <div class="panel-header"><h3>Đặc trưng ảnh hưởng nhiều nhất</h3></div>
+          <div class="panel-body">
+            <p class="panel-hint">Mức giảm F1 khi xáo trộn từng đặc trưng (mô hình được chọn). Càng dài càng quan trọng.</p>
+            <div class="chart-box"><canvas id="chart-importance"></canvas></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-header"><h3>Dữ liệu dùng để train</h3></div>
+          <div class="panel-body"><dl class="info-list" id="data-info"></dl></div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h3>Lịch sử các lần train</h3>
+          <span class="muted">Thêm ghi chú: <code>python ml/train.py --note "thử SMOTE"</code></span>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Thời gian</th><th>Ghi chú</th><th class="text-right">Số dòng</th><th>Mô hình chọn</th>
+                <th class="text-right">CV F1</th><th class="text-right">Recall</th><th class="text-right">Precision</th>
+              </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="js/api.js?v=20261134"></script>
+    <script src="js/layout.js?v=20261134"></script>
+    <script src="js/models.js?v=20261134"></script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+# Môi trường ảo Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Biến môi trường (chứa mật khẩu MySQL, mật khẩu email) - KHÔNG đưa lên Git
+.env
+
+# Thư lưu ở chế độ thử (chưa cấu hình SMTP): có tên, email, điểm của sinh viên
+backend/outbox/
+
+# Dữ liệu: dữ liệu thật của sinh viên là dữ liệu cá nhân, tuyệt đối không commit.
+# Dữ liệu giả lập và mô hình có thể sinh lại bằng script nên cũng bỏ qua.
+ml/data/raw/*
+ml/data/processed/*
+ml/data/synthetic/*
+ml/data/public/*
+ml/models/*
+!ml/data/**/.gitkeep
+!ml/models/.gitkeep
+
+# Hệ điều hành / editor
+.DS_Store
+Thumbs.db
+.idea/
+
+# Bản lưu trữ code prototype (giai đoạn 5), không đưa lên Git
+archive/

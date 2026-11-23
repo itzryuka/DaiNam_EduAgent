@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduAgent</title>
+    <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+    <link href="css/style.css?v=20261134" rel="stylesheet" />
+    <link rel="expect" href="#layout-ready" blocking="render" />
+  </head>
+  <body data-title="Lịch sử gửi email" data-roles="admin,lecturer">
+    <main>
+      <div id="error"></div>
+
+      <!-- Chỉ quản trị: cấu hình gửi email cảnh báo, Agent tự chạy -->
+      <section class="panel" id="config" hidden>
+        <div class="panel-header">
+          <h3>Gửi email cảnh báo tự động</h3>
+          <span id="mail-mode"></span>
+        </div>
+        <div class="panel-body">
+          <div id="config-message"></div>
+          <div class="config-grid">
+            <div>
+              <h4>Ai nhận email sau mỗi lần Agent chạy</h4>
+              <div id="audiences"></div>
+              <p class="note">Mỗi người nhận một email tổng hợp. Chỉ gửi tới tài khoản đã liên kết và xác nhận email.</p>
+            </div>
+            <div>
+              <h4>Tài khoản đã liên kết email</h4>
+              <div id="linked"></div>
+              <p class="note"><a href="users.html?email=unlinked">Xem tài khoản chưa liên kết</a></p>
+            </div>
+            <div>
+              <h4>Agent tự chạy</h4>
+              <label class="check-inline"><input type="checkbox" id="agent-auto" /> Bật</label>
+              <div id="agent-info"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" type="button" id="save-config" style="margin-top: 12px">
+            <i class="fas fa-floppy-disk"></i> Lưu cài đặt
+          </button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h3 id="history-title">Email đã gửi</h3>
+          <div class="toolbar-right">
+            <select class="form-control filter-select" id="kind" aria-label="Lọc theo loại">
+              <option value="">Mọi loại</option>
+              <option value="alert">Cảnh báo</option>
+              <option value="verify">Mã xác nhận</option>
+              <option value="test">Thư thử</option>
+            </select>
+            <select class="form-control filter-select" id="status" aria-label="Lọc theo trạng thái">
+              <option value="">Mọi trạng thái</option>
+              <option value="sent">Đã gửi</option>
+              <option value="outbox">Chế độ thử</option>
+              <option value="failed">Lỗi</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>Thời gian</th><th>Loại</th><th>Người nhận</th><th>Tiêu đề</th><th class="num">Số cảnh báo</th><th>Trạng thái</th></tr>
+            </thead>
+            <tbody id="rows"><tr class="empty-row"><td colspan="6">Đang tải...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="panel-body toolbar">
+          <span class="muted" id="page-label"></span>
+          <div class="toolbar-right">
+            <button class="btn btn-light btn-sm" type="button" id="prev"><i class="fas fa-chevron-left"></i> Trước</button>
+            <button class="btn btn-light btn-sm" type="button" id="next">Sau <i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="js/api.js?v=20261134"></script>
+    <script src="js/layout.js?v=20261134"></script>
+    <script src="js/emails.js?v=20261134"></script>
+  </body>
+</html>

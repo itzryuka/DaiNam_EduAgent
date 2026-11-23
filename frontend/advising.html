@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduAgent</title>
+    <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+    <link href="css/style.css?v=20261134" rel="stylesheet" />
+    <link rel="expect" href="#layout-ready" blocking="render" />
+  </head>
+  <body data-title="Lớp chủ nhiệm" data-roles="lecturer,admin">
+    <main>
+      <div id="error"></div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+          <div><div class="stat-label">Sinh viên</div><div class="stat-value" id="stat-total">–</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fas fa-triangle-exclamation"></i></div>
+          <div><div class="stat-label">Cần chú ý kỳ này</div><div class="stat-value danger" id="stat-attention">–</div><div class="stat-sub" id="stat-ai"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber"><i class="fas fa-circle-xmark"></i></div>
+          <div><div class="stat-label">Có môn nợ</div><div class="stat-value" id="stat-debt">–</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-graduation-cap"></i></div>
+          <div><div class="stat-label">TBC tích lũy trung bình</div><div class="stat-value" id="stat-gpa">–</div></div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="toolbar-left"><span class="total-count" id="title"></span></div>
+        <div class="toolbar-right">
+          <label class="check-inline"><input type="checkbox" id="attention-only" /> Chỉ sinh viên cần chú ý</label>
+          <select class="form-control filter-select" id="class-select" aria-label="Lọc theo lớp" hidden></select>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Mã SV</th><th>Họ tên</th><th>Lớp</th><th class="num">TBC tích lũy</th><th class="num">TC tích lũy</th>
+              <th>Môn nợ</th><th class="num">Vắng TB kỳ này</th><th>Luật quy chế kỳ này</th><th>Nguy cơ trượt cao nhất (AI)</th>
+            </tr>
+          </thead>
+          <tbody id="rows"><tr class="empty-row"><td colspan="9">Đang tải...</td></tr></tbody>
+        </table>
+      </div>
+    </main>
+
+    <script src="js/api.js?v=20261134"></script>
+    <script src="js/layout.js?v=20261134"></script>
+    <script src="js/advising.js?v=20261134"></script>
+  </body>
+</html>

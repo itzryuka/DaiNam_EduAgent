@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduAgent</title>
+    <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+    <link href="css/style.css?v=20261134" rel="stylesheet" />
+    <link rel="expect" href="#layout-ready" blocking="render" />
+  </head>
+  <body data-title="Điểm danh" data-roles="student">
+    <main>
+      <div id="error"></div>
+      <section class="panel">
+        <div class="panel-header">
+          <h3 id="semester-name">Điểm danh học kỳ hiện tại</h3>
+          <span class="muted" id="ban-note"></span>
+        </div>
+        <div class="panel-body">
+          <div class="legend">
+            <span><i class="dot present"></i> Có mặt</span>
+            <span><i class="dot late"></i> Đi muộn</span>
+            <span><i class="dot excused"></i> Vắng có phép</span>
+            <span><i class="dot absent"></i> Vắng</span>
+            <span><i class="dot upcoming"></i> Chưa học</span>
+          </div>
+          <div class="att-grid" id="courses"><p class="muted">Đang tải...</p></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="js/api.js?v=20261134"></script>
+    <script src="js/layout.js?v=20261134"></script>
+    <script src="js/my-attendance.js?v=20261134"></script>
+  </body>
+</html>

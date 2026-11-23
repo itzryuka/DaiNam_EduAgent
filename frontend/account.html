@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduAgent</title>
+    <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+    <link href="css/style.css?v=20261134" rel="stylesheet" />
+    <link rel="expect" href="#layout-ready" blocking="render" />
+  </head>
+  <body data-title="Tài khoản của tôi">
+    <main>
+      <div id="error"></div>
+      <div class="account-grid">
+        <section class="panel">
+          <div class="panel-header"><h3><i class="fas fa-envelope"></i> Email nhận cảnh báo</h3><span id="email-chip"></span></div>
+          <div class="panel-body">
+            <p class="panel-hint" id="email-why"></p>
+            <div id="email-message"></div>
+            <div id="email-current" class="email-current" hidden></div>
+
+            <form id="email-form" class="email-step">
+              <div class="form-group">
+                <label for="email-input" id="email-label">Địa chỉ email</label>
+                <div class="input-row">
+                  <input class="form-control" id="email-input" type="email" autocomplete="email" maxlength="100"
+                    placeholder="vd: ten.sinhvien@dainam.edu.vn" required />
+                  <button class="btn btn-primary" type="submit" id="email-send"><i class="fas fa-paper-plane"></i> Gửi mã xác nhận</button>
+                </div>
+              </div>
+            </form>
+
+            <form id="code-form" class="email-step" hidden>
+              <div class="form-group">
+                <label for="code-input">Mã 6 số đã gửi tới <b id="code-to"></b></label>
+                <div class="input-row">
+                  <input class="form-control code-input" id="code-input" inputmode="numeric" autocomplete="one-time-code"
+                    pattern="\d{6}" maxlength="6" placeholder="______" required />
+                  <button class="btn btn-primary" type="submit"><i class="fas fa-check"></i> Xác nhận</button>
+                  <button class="btn btn-light" type="button" id="code-cancel">Đổi email</button>
+                </div>
+              </div>
+              <p class="note" id="code-note"></p>
+            </form>
+
+            <div class="email-actions" id="email-actions" hidden>
+              <button class="btn btn-light btn-sm" type="button" id="email-test"><i class="fas fa-vial"></i> Gửi thư thử</button>
+              <button class="btn btn-light btn-sm" type="button" id="email-change"><i class="fas fa-pen"></i> Đổi email khác</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header"><h3><i class="fas fa-user"></i> Thông tin tài khoản</h3></div>
+          <div class="panel-body" id="profile"><p class="muted">Đang tải...</p></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header"><h3><i class="fas fa-key"></i> Đổi mật khẩu</h3></div>
+          <form class="panel-body" id="pwd-form">
+            <div id="pwd-message"></div>
+            <div class="form-group">
+              <label for="pwd-old">Mật khẩu hiện tại</label>
+              <input class="form-control" id="pwd-old" type="password" autocomplete="current-password" required />
+            </div>
+            <div class="form-group">
+              <label for="pwd-new">Mật khẩu mới (ít nhất 8 ký tự)</label>
+              <input class="form-control" id="pwd-new" type="password" autocomplete="new-password" minlength="8" required />
+            </div>
+            <div class="form-group">
+              <label for="pwd-confirm">Nhập lại mật khẩu mới</label>
+              <input class="form-control" id="pwd-confirm" type="password" autocomplete="new-password" minlength="8" required />
+            </div>
+            <button class="btn btn-primary" type="submit"><i class="fas fa-key"></i> Đổi mật khẩu</button>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <script src="js/api.js?v=20261134"></script>
+    <script src="js/layout.js?v=20261134"></script>
+    <script src="js/account.js?v=20261134"></script>
+  </body>
+</html>

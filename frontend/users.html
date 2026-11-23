@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduAgent</title>
+    <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+    <link href="css/style.css?v=20261134" rel="stylesheet" />
+    <link rel="expect" href="#layout-ready" blocking="render" />
+  </head>
+  <body data-title="Tài khoản & phân quyền" data-roles="admin">
+    <main>
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span class="total-count" id="count-label"></span>
+          <div class="chips" id="role-counts"></div>
+        </div>
+        <div class="toolbar-right">
+          <form id="search-form" class="check-inline">
+            <input class="form-control" type="search" id="search" placeholder="Tên đăng nhập, họ tên..." aria-label="Tìm tài khoản" />
+          </form>
+          <select class="form-control filter-select" id="role-select" aria-label="Lọc theo vai trò">
+            <option value="">Mọi vai trò</option>
+            <option value="admin">Quản trị hệ thống</option>
+            <option value="lecturer">Giảng viên</option>
+            <option value="student">Sinh viên</option>
+          </select>
+          <select class="form-control filter-select" id="email-select" aria-label="Lọc theo email">
+            <option value="">Mọi trạng thái email</option>
+            <option value="linked">Đã liên kết email</option>
+            <option value="unlinked">Chưa liên kết email</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="message"></div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tên đăng nhập</th><th>Họ tên</th><th>Vai trò</th><th>Thông tin</th><th>Email nhận cảnh báo</th>
+              <th>Đăng nhập gần nhất</th><th>Trạng thái</th><th class="num">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="rows"><tr class="empty-row"><td colspan="8">Đang tải...</td></tr></tbody>
+        </table>
+        <div class="toolbar" style="margin-top: 12px">
+          <span class="muted" id="page-label"></span>
+          <div class="toolbar-right">
+            <button class="btn btn-light btn-sm" type="button" id="prev"><i class="fas fa-chevron-left"></i> Trước</button>
+            <button class="btn btn-light btn-sm" type="button" id="next">Sau <i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="js/api.js?v=20261134"></script>
+    <script src="js/layout.js?v=20261134"></script>
+    <script src="js/users.js?v=20261134"></script>
+  </body>
+</html>

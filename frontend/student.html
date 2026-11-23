@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduAgent</title>
+    <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+    <link href="css/style.css?v=20261134" rel="stylesheet" />
+    <link rel="expect" href="#layout-ready" blocking="render" />
+  </head>
+  <body data-title="Hồ sơ sinh viên" data-roles="admin,lecturer">
+    <main>
+      <p class="back-link"><a href="manage-students.html"><i class="fas fa-arrow-left"></i> Danh sách sinh viên</a></p>
+      <div id="error"></div>
+      <div id="message"></div>
+
+      <section class="panel profile-panel" id="profile" hidden>
+        <div class="profile-head">
+          <div class="avatar avatar-lg" id="p-avatar"></div>
+          <div class="profile-main">
+            <h2 id="p-name"></h2>
+            <div class="profile-meta" id="p-meta"></div>
+          </div>
+          <div class="profile-actions" id="p-actions" hidden>
+            <button class="btn btn-light btn-sm" type="button" id="btn-edit"><i class="fas fa-pen"></i> Sửa thông tin</button>
+            <button class="btn btn-light btn-sm" type="button" id="btn-lock"></button>
+            <button class="btn btn-light btn-sm" type="button" id="btn-reset"><i class="fas fa-key"></i> Đặt lại mật khẩu</button>
+          </div>
+        </div>
+        <div class="profile-facts" id="p-facts"></div>
+      </section>
+
+      <div class="summary-grid" id="p-summary"></div>
+      <div id="p-warning"></div>
+
+      <section class="panel" id="current" hidden>
+        <div class="panel-header"><h3 id="current-title">Học kỳ hiện tại</h3><span class="muted" id="current-meta"></span></div>
+        <div class="table-scroll"><table>
+          <thead id="current-head"></thead>
+          <tbody id="current-rows"></tbody>
+        </table></div>
+        <div class="panel-body"><p class="note">Nguy cơ trượt theo lần chạy gần nhất của AI Agent. Rê chuột lên ô để xem lý do.</p></div>
+      </section>
+
+      <section class="panel" id="history" hidden>
+        <div class="panel-header"><h3>Tổng kết các học kỳ</h3></div>
+        <div class="table-scroll"><table class="summary-table">
+          <thead>
+            <tr>
+              <th rowspan="2">Học kỳ</th>
+              <th colspan="2" class="num group">ĐTB học kỳ</th><th colspan="2" class="num group">ĐTB tích lũy</th>
+              <th colspan="3" class="num group">Số tín chỉ</th>
+              <th rowspan="2">Xếp loại</th><th rowspan="2">Cảnh báo học tập</th><th rowspan="2"></th>
+            </tr>
+            <tr>
+              <th class="num">Hệ 10</th><th class="num">Hệ 4</th><th class="num">Hệ 10</th><th class="num">Hệ 4</th>
+              <th class="num">Đăng ký</th><th class="num">Đạt</th><th class="num">Tích lũy</th>
+            </tr>
+          </thead>
+          <tbody id="history-rows"></tbody>
+        </table></div>
+      </section>
+
+      <section class="panel" id="alerts-panel" hidden>
+        <div class="panel-header"><h3>Cảnh báo gần đây (bản gửi CVHT)</h3></div>
+        <ul class="alert-list" id="p-alerts"></ul>
+      </section>
+    </main>
+
+    <div class="modal-backdrop" id="edit-modal">
+      <form class="modal" id="edit-form" role="dialog" aria-modal="true" aria-labelledby="edit-title">
+        <div class="modal-header">
+          <h3 id="edit-title">Sửa thông tin sinh viên</h3>
+          <button class="modal-close" type="button" data-modal-close title="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="edit-message"></div>
+          <div class="form-grid two">
+            <div class="form-group span-all">
+              <label for="e-name">Họ và tên</label>
+              <input class="form-control" id="e-name" maxlength="100" required />
+            </div>
+            <div class="form-group">
+              <label for="e-class">Lớp hành chính</label>
+              <select class="form-control" id="e-class"></select>
+            </div>
+            <div class="form-group">
+              <label for="e-status">Trạng thái học tập</label>
+              <select class="form-control" id="e-status"></select>
+            </div>
+            <div class="form-group">
+              <label for="e-gender">Giới tính</label>
+              <select class="form-control" id="e-gender"><option value="">Chưa rõ</option><option value="M">Nam</option><option value="F">Nữ</option></select>
+            </div>
+            <div class="form-group">
+              <label for="e-dob">Ngày sinh</label>
+              <input class="form-control" id="e-dob" type="date" />
+            </div>
+            <div class="form-group span-all">
+              <label for="e-email">Email liên hệ</label>
+              <input class="form-control" id="e-email" type="email" maxlength="100" />
+              <span class="muted">Đổi email thì sinh viên phải liên kết (xác nhận) lại mới nhận được email cảnh báo.</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-light" type="button" data-modal-close>Hủy</button>
+          <button class="btn btn-primary" type="submit"><i class="fas fa-floppy-disk"></i> Lưu</button>
+        </div>
+      </form>
+    </div>
+
+    <script src="js/api.js?v=20261134"></script>
+    <script src="js/layout.js?v=20261134"></script>
+    <script src="js/student.js?v=20261134"></script>
+  </body>
+</html>

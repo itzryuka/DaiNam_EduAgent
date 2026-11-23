@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EduAgent</title>
+    <link rel="icon" type="image/png" href="images/logo-dainam.png" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+    <link href="css/style.css?v=20261134" rel="stylesheet" />
+    <link rel="expect" href="#layout-ready" blocking="render" />
+  </head>
+  <body data-title="Quản lý sinh viên" data-roles="admin,lecturer">
+    <main>
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span class="total-count" id="count-label"></span>
+          <div class="chips" id="status-counts"></div>
+        </div>
+        <div class="toolbar-right" id="admin-actions" hidden>
+          <button class="btn btn-light" type="button" id="btn-import"><i class="fas fa-file-excel"></i> Import Excel</button>
+          <button class="btn btn-primary" type="button" id="btn-add"><i class="fas fa-plus"></i> Thêm sinh viên</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-right filters">
+          <form id="search-form" class="check-inline">
+            <input class="form-control" type="search" id="search" placeholder="Mã SV, họ tên..." aria-label="Tìm sinh viên" />
+          </form>
+          <select class="form-control filter-select" id="class-select" aria-label="Lọc theo lớp"><option value="">Mọi lớp</option></select>
+          <select class="form-control filter-select" id="status-select" aria-label="Lọc theo trạng thái"><option value="">Mọi trạng thái</option></select>
+          <select class="form-control filter-select" id="risk-select" aria-label="Lọc theo nguy cơ">
+            <option value="">Mọi mức nguy cơ</option>
+            <option value="flagged">Cần chú ý (luật hoặc AI)</option>
+            <option value="high">Nguy cơ cao</option>
+            <option value="ai">AI phát hiện sớm</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="message"></div>
+
+      <div class="table-container">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Mã SV</th><th>Họ tên</th><th>Lớp</th><th>Ngày sinh</th>
+                <th class="num">ĐTB tích lũy</th><th class="num">TC tích lũy</th><th class="num">Môn nợ</th>
+                <th>Nguy cơ học kỳ này (AI)</th><th>Email</th><th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody id="rows"><tr class="empty-row"><td colspan="10">Đang tải...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="toolbar" style="margin-top: 12px">
+          <span class="muted" id="page-label"></span>
+          <div class="toolbar-right">
+            <button class="btn btn-light btn-sm" type="button" id="prev"><i class="fas fa-chevron-left"></i> Trước</button>
+            <button class="btn btn-light btn-sm" type="button" id="next">Sau <i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Thêm sinh viên -->
+    <div class="modal-backdrop" id="add-modal">
+      <form class="modal" id="add-form" role="dialog" aria-modal="true" aria-labelledby="add-title">
+        <div class="modal-header">
+          <h3 id="add-title">Thêm sinh viên</h3>
+          <button class="modal-close" type="button" data-modal-close title="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="add-message"></div>
+          <div class="form-grid two" id="add-fields">
+            <div class="form-group">
+              <label for="f-code">Mã sinh viên *</label>
+              <input class="form-control" id="f-code" maxlength="20" required pattern="[A-Za-z0-9]{4,20}" placeholder="vd: SV180241" />
+            </div>
+            <div class="form-group">
+              <label for="f-class">Lớp hành chính *</label>
+              <select class="form-control" id="f-class" required></select>
+            </div>
+            <div class="form-group span-all">
+              <label for="f-name">Họ và tên *</label>
+              <input class="form-control" id="f-name" maxlength="100" required />
+            </div>
+            <div class="form-group">
+              <label for="f-gender">Giới tính</label>
+              <select class="form-control" id="f-gender"><option value="">Chưa rõ</option><option value="M">Nam</option><option value="F">Nữ</option></select>
+            </div>
+            <div class="form-group">
+              <label for="f-dob">Ngày sinh</label>
+              <input class="form-control" id="f-dob" type="date" />
+            </div>
+            <div class="form-group span-all">
+              <label for="f-email">Email liên hệ</label>
+              <input class="form-control" id="f-email" type="email" maxlength="100" />
+            </div>
+          </div>
+          <div id="add-done" hidden></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-light" type="button" data-modal-close>Đóng</button>
+          <button class="btn btn-primary" type="submit" id="add-submit"><i class="fas fa-floppy-disk"></i> Lưu</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Import Excel -->
+    <div class="modal-backdrop" id="import-modal">
+      <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="import-title">
+        <div class="modal-header">
+          <h3 id="import-title">Import danh sách sinh viên từ Excel</h3>
+          <button class="modal-close" type="button" data-modal-close title="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="panel-hint">
+            File .xlsx / .xls / .csv, dòng đầu là tiêu đề cột: <b>Mã SV</b>, <b>Họ tên</b>, <b>Lớp</b> (bắt buộc),
+            Giới tính (Nam / Nữ), Ngày sinh (ngày/tháng/năm), Email. Mã SV đã có thì cập nhật thông tin; mã mới thì tạo
+            sinh viên kèm tài khoản đăng nhập (mật khẩu tạm). Hệ thống kiểm tra trước, chưa ghi gì cho tới khi bạn xác nhận.
+          </p>
+          <div class="input-row">
+            <input class="form-control" type="file" id="import-file" accept=".xlsx,.xls,.csv" />
+            <button class="btn btn-light" type="button" id="import-template"><i class="fas fa-download"></i> Tải file mẫu</button>
+          </div>
+          <div id="import-message" style="margin-top: 12px"></div>
+          <div id="import-preview"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-light" type="button" data-modal-close>Đóng</button>
+          <button class="btn btn-primary" type="button" id="import-commit" disabled><i class="fas fa-check"></i> Ghi vào hệ thống</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/api.js?v=20261134"></script>
+    <script src="js/layout.js?v=20261134"></script>
+    <script src="js/manage-students.js?v=20261134"></script>
+  </body>
+</html>
