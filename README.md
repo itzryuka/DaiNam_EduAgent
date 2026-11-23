@@ -69,7 +69,7 @@ Cần: Python 3.12 trở lên, XAMPP (có MySQL). Nhấp đúp **`start.bat`** �
 2. Chép `backend/.env` từ `.env.example` nếu chưa có
 3. Tự bật MySQL của XAMPP nếu chưa chạy (dò `C:\xampp`, `D:\xampp`, `D:\Program\XAMPP`...; máy khác thì ghi `XAMPP_DIR` trong `backend/.env`)
 4. Import `database/schema_v2.sql` nếu chưa có CSDL `eduagent_v2`, sinh dữ liệu demo nếu CSDL trống
-   (`seed_demo_v2.py`). Tài khoản demo: `admin`, `gv001`…, `SV170001`…,
+   (`seed_demo_v2.py`). Tài khoản demo: `admin`, `gv001`…, mã sinh viên `1771020001`…,
    mật khẩu chung là `DEMO_PASSWORD` trong `database/seed_demo_v2.py`
 5. Train mô hình thử nghiệm (dữ liệu giả lập) nếu thiếu, báo tình trạng dữ liệu và mô hình OULAD
 6. AI Agent: train mô hình Agent trên CSDL v2 nếu thiếu (khoảng 30 giây), chạy Agent lần đầu nếu kỳ này chưa chạy
@@ -191,7 +191,7 @@ Token JWT ký bằng `JWT_SECRET` trong `backend/.env` (`start.bat` tự tạo),
 |---|---|---|
 | Quản trị hệ thống | `admin` | Tổng quan (toàn trường), Lớp học phần, Lớp hành chính, Sinh viên (thêm, sửa, import Excel), Tài khoản & phân quyền |
 | Giảng viên (có thể kiêm CVHT) | `gv001` … `gv012` (gv001–gv006 là CVHT) | Tổng quan (lớp mình), Lớp học phần của tôi (nhập điểm, điểm danh, nhật ký sửa điểm), Lớp chủ nhiệm, Sinh viên lớp chủ nhiệm |
-| Sinh viên | `SV170001`, `SV180001`, `SV190001`… | Kết quả học tập, Điểm danh |
+| Sinh viên | mã sinh viên: `1771020001`, `1871020001`, `1971020001`… | Kết quả học tập, Điểm danh |
 
 Mật khẩu chung của tài khoản demo: hằng `DEMO_PASSWORD` trong `database/seed_demo_v2.py` (chỉ dùng trên máy cá nhân).
 Sai mật khẩu 5 lần liên tiếp thì tên đăng nhập bị tạm khóa 5 phút. Kiểm tra toàn bộ phân quyền:

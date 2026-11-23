@@ -1,6 +1,6 @@
 """Sinh dữ liệu DEMO cho CSDL v2 (database/schema_v2.sql), theo cấu trúc đào tạo của Đại Nam.
 
-Toàn bộ là dữ liệu GIẢ: họ tên ghép ngẫu nhiên, mã sinh viên dạng SV180001, email @example.edu.vn,
+Toàn bộ là dữ liệu GIẢ: họ tên ghép ngẫu nhiên, mã sinh viên 10 chữ số dạng 1871020001, email @example.edu.vn,
 mã môn học chỉ để minh họa. Dùng để chạy thử giao diện, API và AI Agent. KHÔNG dùng để train mô hình
 báo cáo trong đề tài (mô hình train trên OULAD, sau này trên dữ liệu thật của Đại Nam).
 
@@ -15,7 +15,7 @@ Mô phỏng:
 
 Chạy:  python database/seed_demo_v2.py            (CSDL eduagent_v2 phải đã import schema_v2.sql)
        python database/seed_demo_v2.py --reset    (xóa dữ liệu cũ rồi sinh lại)
-Mọi tài khoản demo dùng chung mật khẩu DEMO_PASSWORD bên dưới; tên đăng nhập: admin, gv001.., SV180001..
+Mọi tài khoản demo dùng chung mật khẩu DEMO_PASSWORD bên dưới; tên đăng nhập: admin, gv001.., mã sinh viên (1771020001..)
 """
 
 import argparse
@@ -39,6 +39,9 @@ DEMO_PASSWORD = "DaiNam@2026"
 SEED = 2026
 WEEKS = 15
 STUDENTS_PER_CLASS = 40
+# Mã sinh viên giả, 10 chữ số giống thẻ SV Đại Nam: khóa (2) + mã ngành rút gọn (4) + số thứ tự (4),
+# vd 1771020001 = khóa 17, ngành CNTT, sinh viên thứ 1. Không phải mã thật của ai.
+STUDENT_CODE_MAJOR = {"CNTT": "7102", "KHMT": "7101"}
 ABSENCE_BAN_RATIO = 0.20  # [cần xác nhận] vắng quá 20% số buổi thì cấm thi
 
 SEMESTERS = [  # (mã, tên, ngày bắt đầu). Kết thúc = bắt đầu + 15 tuần học + 2 tuần thi
@@ -181,6 +184,7 @@ class Generator:
             self.courses[code] = {"id": cid, "diff": diff, "idx": idx, "credits": credits, "components": comps}
 
         self.classes = {}  # class_id -> (cohort, lecturer cvht)
+        self.student_seq = {}  # (khóa, ngành) -> số thứ tự sinh viên đã cấp mã
         self.students: list[Student] = []
         advisor_iter = iter(self.lecturers)
         for cohort in COHORTS:
@@ -191,12 +195,12 @@ class Generator:
                 class_id = self.add("classes", (f"{prefix} {cohort}-{n:02d}", major, cohort, advisor))
                 self.classes[class_id] = cohort
                 for _ in range(STUDENTS_PER_CLASS):
-                    self.add_student(class_id, cohort, student_hash)
+                    self.add_student(class_id, cohort, prefix, student_hash)
 
-    def add_student(self, class_id: int, cohort: int, password_hash: str) -> None:
+    def add_student(self, class_id: int, cohort: int, major: str, password_hash: str) -> None:
         rng = self.rng
-        seq = sum(1 for s in self.students if s.cohort == cohort) + 1
-        code = f"SV{cohort}{seq:04d}"
+        self.student_seq[(cohort, major)] = seq = self.student_seq.get((cohort, major), 0) + 1
+        code = f"{cohort}{STUDENT_CODE_MAJOR[major]}{seq:04d}"
         gender = "M" if rng.random() < 0.75 else "F"
         full_name = self.name(gender)
         birth = date(COHORTS[cohort] - 18, 1, 1) + timedelta(days=int(rng.integers(0, 365)))
@@ -397,7 +401,7 @@ def main() -> None:
             fail_txt = f"{float(fail):.1%}" if fail is not None else "chưa thi"
             banned_txt = f"{float(banned):.1%}" if fail is not None else ""
             print(f"  {code:<13} {n:>8}   {fail_txt:>11}   {banned_txt:>7}")
-        print(f"\nTài khoản demo: admin, gv001..gv012, SV170001...; mật khẩu chung: xem DEMO_PASSWORD trong {Path(__file__).name}")
+        print(f"\nTài khoản demo: admin, gv001..gv012, mã sinh viên 1771020001...; mật khẩu chung: xem DEMO_PASSWORD trong {Path(__file__).name}")
 
 
 if __name__ == "__main__":

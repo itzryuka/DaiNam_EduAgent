@@ -225,8 +225,8 @@ document.getElementById("import-template").addEventListener("click", async () =>
     const cls = msOptions.classes[0]?.code ?? "CNTT 18-01";
     const ws = XLSX.utils.aoa_to_sheet([
       ["Mã SV", "Họ tên", "Lớp", "Giới tính", "Ngày sinh", "Email"],
-      ["SV180901", "Nguyễn Văn An", cls, "Nam", "15/08/2006", "sv180901@example.edu.vn"],
-      ["SV180902", "Trần Thị Bình", cls, "Nữ", "02/11/2006", ""],
+      ["1871020901", "Nguyễn Văn An", cls, "Nam", "15/08/2006", "1871020901@example.edu.vn"],
+      ["1871020902", "Trần Thị Bình", cls, "Nữ", "02/11/2006", ""],
     ]);
     ws["!cols"] = [{ wch: 12 }, { wch: 24 }, { wch: 14 }, { wch: 10 }, { wch: 12 }, { wch: 28 }];
     const wb = XLSX.utils.book_new();

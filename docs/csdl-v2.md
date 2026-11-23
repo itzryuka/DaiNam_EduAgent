@@ -70,8 +70,8 @@ từng sinh viên × lớp học phần).
 viên, 27 môn, 5 học kỳ (HK1 2024-2025 → HK1 2026-2027, kỳ hiện tại chỉ có dữ liệu đến hôm nay), khoảng 4.500
 lượt học, 65.000 lượt điểm danh, 15.000 đầu điểm. Tỷ lệ trượt các kỳ đã xong khoảng 14–20%, cấm thi 3–5%.
 
-- Toàn bộ là dữ liệu giả (họ tên ghép ngẫu nhiên, mã `SV180001`, email `@example.edu.vn`, mã môn minh họa).
+- Toàn bộ là dữ liệu giả (họ tên ghép ngẫu nhiên, mã sinh viên 10 chữ số `1871020001`, email `@example.edu.vn`, mã môn minh họa).
 - Một số sinh viên được mô phỏng **sa sút giữa kỳ** (đi học ít dần, KT2 thấp hơn KT1) để thử AI Agent.
-- Tài khoản: `admin`, `gv001`…`gv012`, mã sinh viên (`SV170001`…). Mật khẩu chung: hằng `DEMO_PASSWORD`
+- Tài khoản: `admin`, `gv001`…`gv012`, mã sinh viên (`1771020001`…: khóa + mã ngành rút gọn + số thứ tự). Mật khẩu chung: hằng `DEMO_PASSWORD`
   trong `seed_demo_v2.py`. Chỉ dùng trên máy cá nhân.
 - **Không dùng dữ liệu demo để train mô hình báo cáo trong đề tài.**

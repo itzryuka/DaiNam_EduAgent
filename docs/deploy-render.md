@@ -44,7 +44,7 @@ Không cần tự tạo bảng hay import file SQL: lúc deploy, Render tự là
 
    Theo dõi ở tab **Logs**: các dòng bắt đầu bằng `[deploy_setup]` cho biết đang ở bước nào.
 5. Xong, trang chạy ở địa chỉ dạng `https://dainam-eduagent.onrender.com`. Đăng nhập bằng tài khoản demo
-   (`admin`, `gv001`..., `SV170001`...). Mật khẩu chung nằm ở `DEMO_PASSWORD` trong `database/seed_demo_v2.py`.
+   (`admin`, `gv001`..., mã sinh viên `1771020001`...). Mật khẩu chung nằm ở `DEMO_PASSWORD` trong `database/seed_demo_v2.py`.
 
 Mỗi lần đẩy code mới lên nhánh `main`, Render tự deploy lại. Khi deploy lại:
 - dữ liệu cũ trong TiDB được **giữ nguyên**, chỉ bảng còn thiếu mới được tạo;

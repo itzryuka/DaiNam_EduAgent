@@ -62,12 +62,12 @@ st, body = login("khong-ton-tai")
 check("Sai tên đăng nhập -> 401 (cùng thông báo)", st == 401, body)
 
 tokens = {}
-for user in ("admin", "gv003", "SV180001"):
+for user in ("admin", "gv003", "1871020001"):
     st, body = login(user)
     check(f"Đăng nhập {user}", st == 200, f"{body['user']['role_label'] if st == 200 else body}")
     tokens[user] = body["access_token"] if st == 200 else None
 
-admin, lec, stu = tokens["admin"], tokens["gv003"], tokens["SV180001"]
+admin, lec, stu = tokens["admin"], tokens["gv003"], tokens["1871020001"]
 st, me = call("GET", "/auth/me", token=lec)
 check("GV003 là CVHT", st == 200 and me["advised_classes"], me.get("advised_classes"))
 
@@ -142,7 +142,7 @@ st, overview = call("GET", "/agent/overview", token=admin)
 check("Admin xem tổng quan Agent", st == 200 and overview["run"], overview.get("run", {}).get("message") if st == 200 else st)
 st, run = call("POST", "/agent/run", token=admin)
 check("Admin chạy Agent", st == 200 and run["status"] == "success", run.get("message") if st == 200 else run)
-student_with_alerts = "SV170073"  # sinh viên demo có lời nhắc từ Agent
+student_with_alerts = "1771020073"  # sinh viên demo có lời nhắc từ Agent
 st, body = login(student_with_alerts)
 stu2 = body["access_token"] if st == 200 else stu
 st, mine_alerts = call("GET", "/alerts/mine", token=stu2)
@@ -155,15 +155,15 @@ if st == 200 and mine_alerts["items"]:
 
 # Liên kết email, lịch sử email
 st, acc = call("GET", "/account", token=stu)
-check("SV xem tài khoản của mình", st == 200 and acc["user"]["username"] == "SV180001", st)
+check("SV xem tài khoản của mình", st == 200 and acc["user"]["username"] == "1871020001", st)
 st, body = call("POST", "/account/email/request", {"email": "khong-hop-le"}, token=stu)
 check("Email sai định dạng -> 400", st == 400, body)
 other = call("GET", "/admin/users?email=linked&role=student", token=admin)[1]["items"]
-other = next((u for u in other if u["username"] != "SV180001"), None)
+other = next((u for u in other if u["username"] != "1871020001"), None)
 if other:
     st, body = call("POST", "/account/email/request", {"email": other["email"]}, token=stu)
     check("Email đã thuộc tài khoản khác -> 409", st == 409, body)
-st, sent = call("POST", "/account/email/request", {"email": f"sv180001.{int(time.time())}@example.edu.vn"}, token=stu)
+st, sent = call("POST", "/account/email/request", {"email": f"1871020001.{int(time.time())}@example.edu.vn"}, token=stu)
 check("Gửi mã xác nhận (hoặc bị giới hạn 1 phút/lần)", st in (200, 429), sent)
 if st == 200 and sent.get("dev_code"):
     wrong = "000000" if sent["dev_code"] != "000000" else "111111"
@@ -172,7 +172,7 @@ if st == 200 and sent.get("dev_code"):
     st, body = call("POST", "/account/email/verify", {"code": sent["dev_code"]}, token=stu)
     check("Nhập đúng mã -> đã liên kết", st == 200 and body["email_verified"], body)
 st, mails = call("GET", "/emails?limit=200", token=stu)
-check("SV chỉ thấy email gửi tới mình", st == 200 and all(m["user"]["username"] == "SV180001" for m in mails["items"]),
+check("SV chỉ thấy email gửi tới mình", st == 200 and all(m["user"]["username"] == "1871020001" for m in mails["items"]),
       f"{mails['total']} email" if st == 200 else st)
 check("Lịch sử email không lộ mã xác nhận", st == 200 and all(
     m["kind"] != "verify" or not any(c.isdigit() for c in m["subject"] + m["body"].split("là:")[-1][:12])
