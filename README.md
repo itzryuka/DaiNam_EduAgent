@@ -61,9 +61,43 @@ EduAgent/
 └── docs/                       # kế hoạch, thiết kế, CSDL, từ điển dữ liệu
 ```
 
-## Chạy nhanh: một file
+## Cài đặt
 
-Cần: Python 3.12 trở lên, XAMPP (có MySQL). Nhấp đúp **`start.bat`** ở thư mục gốc. Script sẽ:
+Hướng dẫn cho Windows. Lần đầu mất khoảng 5–10 phút (phần lớn là tải thư viện Python), các lần sau chỉ vài giây.
+
+### Bước 1. Cài phần mềm cần có (mỗi máy làm một lần)
+
+| Phần mềm | Tải ở đâu | Lưu ý khi cài |
+|---|---|---|
+| Python 3.12 trở lên | https://www.python.org/downloads/ | **Tích ô "Add python.exe to PATH"** ở màn hình đầu tiên |
+| XAMPP (để có MySQL) | https://www.apachefriends.org/ | Chỉ cần thành phần **MySQL** (và phpMyAdmin nếu muốn xem CSDL) |
+| Git | https://git-scm.com/download/win | Để mặc định |
+| VS Code (không bắt buộc) | https://code.visualstudio.com/ | Để sửa code |
+
+Kiểm tra: mở PowerShell, gõ `python --version` và `git --version`, cả hai phải in ra số phiên bản.
+Nếu `python` mở Microsoft Store thì cài lại Python và nhớ tích "Add to PATH".
+
+### Bước 2. Tải mã nguồn
+
+```powershell
+git clone https://github.com/itzryuka/DaiNam_EduAgent.git EduAgent
+cd EduAgent
+```
+
+### Bước 3. Chạy lần đầu
+
+Nhấp đúp **`start.bat`** ở thư mục gốc (hoặc gõ `start.bat` trong PowerShell). Không cần bật MySQL trước,
+script tự bật. Khi thấy dòng báo backend đã chạy, trình duyệt tự mở http://127.0.0.1:8000.
+
+### Bước 4. Đăng nhập thử
+
+Tài khoản demo: `admin` (quản trị), `gv001` (giảng viên kiêm CVHT), `1771020001` (sinh viên).
+Mật khẩu chung là hằng `DEMO_PASSWORD` trong `database/seed_demo_v2.py`. Chi tiết các vai trò ở mục
+[Đăng nhập và phân quyền](#đăng-nhập-và-phân-quyền).
+
+### Cách 1 (khuyên dùng): `start.bat` làm những gì
+
+Mỗi lần chạy, `start.bat` kiểm tra từng phần và chỉ làm phần còn thiếu:
 
 1. Tạo `.venv` và cài thư viện nếu chưa có
 2. Chép `backend/.env` từ `.env.example` nếu chưa có
@@ -83,9 +117,9 @@ start.bat --train    # train lại mô hình OULAD và mô hình Agent trước 
 start.bat --port 8001
 ```
 
-## Cài đặt thủ công (Windows)
+### Cách 2: cài thủ công từng bước
 
-Cần: Python 3.12 trở lên, Git, XAMPP (bật **MySQL**), VS Code.
+Dùng khi muốn hiểu từng bước hoặc `start.bat` báo lỗi. Cần bật **MySQL** trong XAMPP Control Panel trước.
 
 ```powershell
 # 1. Tạo môi trường ảo và cài thư viện (chạy ở thư mục gốc dự án)
@@ -128,6 +162,17 @@ Mở trình duyệt:
 - Kiểm tra CSDL và mô hình: http://127.0.0.1:8000/api/health
 
 > Làm giao diện bằng **Live Server** (cổng 5500) cũng được, nhưng backend vẫn phải chạy ở cổng 8000.
+
+### Lỗi thường gặp khi cài
+
+| `start.bat` báo | Cách xử lý |
+|---|---|
+| `Khong tim thay Python` | Cài Python, tích "Add python.exe to PATH", mở lại cửa sổ rồi chạy lại |
+| `MySQL: chưa chạy và không tìm thấy XAMPP` | Bật MySQL trong XAMPP Control Panel, hoặc ghi `XAMPP_DIR=đường\dẫn\xampp` vào `backend/.env` |
+| `CSDL: không đăng nhập được MySQL` | MySQL có mật khẩu: sửa `DB_PASSWORD` trong `backend/.env` |
+| `Backend: cổng 8000 đang bị chương trình khác dùng` | Tắt backend đang chạy ở cửa sổ khác, hoặc chạy `start.bat --port 8001` |
+| `Dữ liệu OULAD: chưa tải` | Chỉ là lưu ý, web vẫn chạy. Cần mô hình OULAD thì chạy `python ml\scripts\download_oulad.py` |
+| `Thư viện: cài thất bại` | Kiểm tra mạng; xóa thư mục `.venv` rồi chạy lại `start.bat` |
 
 ## AI Agent
 
